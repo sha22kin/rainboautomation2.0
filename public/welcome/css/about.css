@@ -1,0 +1,35 @@
+/* About Us page: premium hero artwork + motion (from desing/Rainbow_Automation_About.html; header menu rules left out so the header matches every page) */
+.ra-banner{padding:55px 0 65px;background:radial-gradient(circle at 94% 34%,#d7e9ff 0,transparent 37%),radial-gradient(circle at 12% 95%,#dbfff0 0,transparent 35%),linear-gradient(115deg,#fff,#f8fbff)}
+.ra-banner .wrap{width:min(1680px,calc(100% - 70px))}
+.ra-banner-grid{grid-template-columns:minmax(0,.84fr) minmax(0,1.16fr);gap:54px;align-items:center}
+.ra-banner-grid>div:first-child{min-width:0}
+.ra-banner h1{font-size:clamp(44px,4.65vw,78px);letter-spacing:-3px;line-height:1.12;margin:28px 0 20px;max-width:780px}
+.ra-banner p{font-size:clamp(14px,1vw,17px);line-height:1.9;max-width:690px}
+.ra-banner-actions{display:flex;gap:11px;flex-wrap:wrap;margin-top:24px}
+.ra-premium-art{width:100%;aspect-ratio:985/575;position:relative;border-radius:45px;overflow:hidden;box-shadow:0 27px 65px #284c892e;isolation:isolate;background:#102a56;animation:raArtHover 8s ease-in-out infinite}
+.ra-about-artwork{width:100%;height:100%;display:block;object-fit:fill}
+.ra-art-glow{position:absolute;left:49%;top:50%;width:13%;aspect-ratio:1;border:2px solid #96e7ff9e;box-shadow:0 0 32px #39afffaa,inset 0 0 22px #5bbaff44;border-radius:50%;pointer-events:none;animation:raHalo 4s ease-in-out infinite}
+.ra-premium-art:after{content:'';pointer-events:none;position:absolute;top:-30%;left:-40%;width:24%;height:160%;transform:rotate(25deg);background:linear-gradient(90deg,transparent,#ffffff13,transparent);animation:raShine 12s ease-in-out infinite}
+@keyframes raArtHover{0%,100%{transform:translateY(0)}50%{transform:translateY(-6px)}}
+@keyframes raHalo{0%,100%{opacity:.27;transform:scale(.8)}50%{opacity:.8;transform:scale(1.2)}}
+@keyframes raShine{0%,56%{left:-60%}79%,100%{left:140%}}
+@media(max-width:1100px){.ra-banner-grid{grid-template-columns:1fr;gap:42px}.ra-banner .wrap{width:min(900px,calc(100% - 36px))}.ra-banner h1{font-size:clamp(42px,6vw,66px)}}
+@media(max-width:700px){.ra-banner{padding:55px 0}.ra-banner h1{font-size:clamp(37px,9vw,56px);letter-spacing:-1.4px}.ra-premium-art{border-radius:25px}}
+@media(prefers-reduced-motion:reduce){.ra-premium-art,.ra-art-glow,.ra-premium-art:after{animation:none!important}}
+
+.ra-premium-art { isolation:isolate; }
+.ra-motion-center{position:absolute;left:54.9%;top:54.5%;width:35%;aspect-ratio:1;transform:translate(-50%,-50%);pointer-events:none;z-index:4;filter:drop-shadow(0 0 8px rgba(30,164,255,.32));}
+.ra-motion-orbit{position:absolute;border-radius:50%;inset:0;border:2px dashed rgba(130,214,255,.63);box-shadow:0 0 17px rgba(43,166,255,.25),inset 0 0 12px rgba(75,168,255,.15);animation:raMotionOrbit 18s linear infinite;}
+.ra-motion-orbit.middle{inset:9%;border:2px dotted rgba(219,180,255,.72);animation-duration:13s;animation-direction:reverse;}
+.ra-motion-orbit.inner{inset:20%;border:2px solid transparent;border-top-color:rgba(160,228,255,.85);border-bottom-color:rgba(197,141,255,.85);animation-duration:8s;}
+.ra-motion-orbit .ra-orbit-dot{position:absolute;left:50%;top:-6px;display:block;width:11px;height:11px;border-radius:50%;background:#bdf5ff;box-shadow:0 0 9px 3px #44caff,0 0 24px 7px rgba(64,173,255,.65);transform:translateX(-50%);}
+.ra-motion-orbit.middle .ra-orbit-dot{background:#f2c9ff;box-shadow:0 0 12px 4px #b66fff;width:9px;height:9px;}
+.ra-motion-orbit.inner .ra-orbit-dot{width:7px;height:7px;}
+.ra-electric-ring{position:absolute;inset:25%;border-radius:50%;border:3px solid rgba(90,204,255,.23);border-top-color:rgba(155,239,255,.85);border-right-color:rgba(180,137,255,.75);box-shadow:0 0 20px rgba(55,179,255,.48),inset 0 0 14px rgba(69,164,255,.22);animation:raMotionOrbit 6.6s linear infinite;}
+.ra-motion-gear-rim{position:absolute;inset:26%;border-radius:50%;background:repeating-conic-gradient(from 0deg,rgba(164,235,255,.48) 0deg 5deg,transparent 5deg 30deg);mask:radial-gradient(farthest-side,transparent 84%,black 86% 99%,transparent 100%);opacity:.7;animation:raMotionOrbit 12s linear infinite reverse;}
+.ra-motion-glint{position:absolute;width:5px;height:5px;border-radius:50%;background:#e2fdff;box-shadow:0 0 13px 5px #5ecbff;animation:raTwinkle 2.4s ease-in-out infinite;}
+.ra-motion-glint.g1{left:5%;top:44%}.ra-motion-glint.g2{right:7%;top:26%;animation-delay:.9s}.ra-motion-glint.g3{left:38%;bottom:1%;animation-delay:1.5s;}
+@keyframes raMotionOrbit{to{transform:rotate(360deg)}}
+@keyframes raTwinkle{0%,100%{opacity:.2;transform:scale(.6)}50%{opacity:1;transform:scale(1.7)}}
+@media(max-width:700px){.ra-motion-center{width:35%;}}
+@media(prefers-reduced-motion:reduce){.ra-motion-orbit,.ra-electric-ring,.ra-motion-gear-rim,.ra-motion-glint{animation:none!important}}

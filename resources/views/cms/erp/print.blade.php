@@ -1,0 +1,8 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><title>{{ $title }} | Rainbow Automation</title>
+<style>body{margin:24px;font:12px/1.45 Inter,'Segoe UI',Arial,sans-serif;color:#1a2940}.head{display:flex;justify-content:space-between;align-items:flex-end;border-bottom:2px solid #11213b;padding-bottom:8px;margin-bottom:12px}h1{margin:0;font-size:18px}.muted{color:#708097;font-size:11px}table{border-collapse:collapse;width:100%}th,td{border:1px solid #d6dfea;padding:5px 7px;text-align:left}th{background:#f1f5fb;font-size:10px;text-transform:uppercase;letter-spacing:.4px}tr:nth-child(even) td{background:#fafcfe}tr.total td{font-weight:800;background:#eef3fa;border-top:2px solid #11213b}.noprint{margin-bottom:12px}@media print{body{margin:0}.noprint{display:none}thead{display:table-header-group}tr{page-break-inside:avoid}}</style>
+</head><body>
+<div class="noprint"><button onclick="window.print()">⎙ Print</button> <button onclick="window.close()">Close</button></div>
+<div class="head"><div><strong>RAINBOW AUTOMATION</strong> <span class="muted">· {{ $branch }}</span><h1>{{ $title }}</h1></div><div class="muted">@if($period ?? null)Period: {{ $period }} · @endif{{ count($rows) }} rows · Printed {{ now()->format('Y-m-d H:i') }}</div></div>
+<table><thead><tr>@foreach($headers as $h)<th>{{ $h }}</th>@endforeach</tr></thead><tbody>@forelse($rows as $r)<tr class="{{ ($r[0] ?? '') === 'Total' ? 'total' : '' }}">@foreach($r as $v)<td>{{ is_float($v) || is_int($v) ? App\Support\Erp::number($v) : $v }}</td>@endforeach</tr>@empty<tr><td colspan="{{ count($headers) }}">No records found</td></tr>@endforelse</tbody></table>
+<script>window.onload=()=>window.print()</script>
+</body></html>

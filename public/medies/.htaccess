@@ -1,0 +1,16 @@
+# Uploaded media: files here are only ever served as downloads / images, never run as code.
+<IfModule mod_authz_core.c>
+    <FilesMatch "(?i)\.(php[0-9]?|pht|phtml|phar|inc|pl|py|cgi|sh|shtml|htaccess)$">
+        Require all denied
+    </FilesMatch>
+</IfModule>
+<IfModule !mod_authz_core.c>
+    <FilesMatch "(?i)\.(php[0-9]?|pht|phtml|phar|inc|pl|py|cgi|sh|shtml|htaccess)$">
+        Order allow,deny
+        Deny from all
+    </FilesMatch>
+</IfModule>
+<IfModule mod_mime.c>
+    RemoveHandler .php .php3 .php4 .php5 .php7 .php8 .pht .phtml .phar
+    RemoveType .php .php3 .php4 .php5 .php7 .php8 .pht .phtml .phar
+</IfModule>

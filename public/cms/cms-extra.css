@@ -1,0 +1,139 @@
+/* Rainbow Automation CMS — additions to the design: links styled as nav buttons, the collapsible
+   "Website" menu, the user menu and row actions. Built only from the design's own tokens. */
+a.navbtn{text-decoration:none}a.navbtn:hover{color:#bbcee5}a.navbtn.active:hover{color:white}
+.navgroup .navbtn .caret{margin-left:auto;font-size:15px;line-height:1;transition:transform .2s}
+.navgroup.open>.navbtn .caret{transform:rotate(90deg)}
+.subnav{display:none;margin:2px 0 8px 18px;padding-left:9px;border-left:1px solid #ffffff15}
+.navgroup.open .subnav{display:block}
+.subnav .nav-caption{margin:16px 13px 6px;font-size:9px}
+.subnav .nav-caption:first-child{margin-top:8px}
+.subnav .navbtn{padding:7px 11px;font-size:13px;font-weight:600;margin:1px 0;gap:9px}
+.subnav .navbtn span:first-child{font-size:13px;width:10px;color:#6f89ad}
+.subnav .navbtn.active span:first-child{color:white}
+.profile{position:relative}
+button.avatar{border:0;padding:0;font:inherit;font-weight:900;cursor:pointer}
+.usermenu{position:absolute;right:0;top:calc(100% + 12px);z-index:40;display:none;min-width:220px;background:#fff;border:1px solid var(--line);border-radius:14px;box-shadow:0 22px 60px #15395b26;padding:7px}
+.usermenu.show{display:block}
+.usermenu-head{padding:9px 11px 11px;border-bottom:1px solid #eef2f6;margin-bottom:5px;display:flex;flex-direction:column;color:var(--ink);font-size:12px}
+.usermenu a,.usermenu button{display:block;width:100%;padding:9px 11px;border:0;border-radius:9px;background:none;color:#405670;font-weight:650;font-size:12px;text-align:left;text-decoration:none}
+.usermenu a:hover,.usermenu button:hover{background:#f4f7fc}
+.usermenu button.danger{color:#bf4050}
+.rowactions{display:flex;gap:6px}
+.rowactions form{margin:0}
+.catdot{display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:7px;vertical-align:middle}
+/* Compact density for the ERP screens (website editor pages keep their own spacing) */
+body:not(.ws) .topbar{padding:10px 22px}
+body:not(.ws) .title{font-size:16px}
+body:not(.ws) .avatar{height:32px;width:32px}
+body:not(.ws) .main{padding:16px 22px 36px}
+body:not(.ws) .demo{padding:7px 12px;margin-bottom:14px;font-size:11px;border-radius:9px}
+body:not(.ws) .welcome{margin-bottom:12px;gap:10px}
+body:not(.ws) h1{font-size:20px;letter-spacing:-.5px}
+body:not(.ws) h2{font-size:15px;margin-bottom:10px}
+body:not(.ws) .btn{padding:7px 12px;border-radius:8px;font-size:13px}
+body:not(.ws) .btn.small{font-size:11px;padding:4px 8px;border-radius:7px}
+body:not(.ws) .stats{gap:10px;margin-bottom:14px}
+body:not(.ws) .stat{padding:12px 14px;border-radius:12px}
+body:not(.ws) .stat .num{font-size:21px;margin:2px 0}
+body:not(.ws) .stat .dot{padding:5px;font-size:14px;border-radius:8px}
+body:not(.ws) .panel{padding:14px;margin-bottom:14px;border-radius:12px}
+body:not(.ws) .split{gap:14px}
+body:not(.ws) .toolbar{margin-bottom:10px;gap:8px}
+body:not(.ws) .toolbar h2{margin:0}
+body:not(.ws) .filter{padding:6px 10px;border-radius:8px}
+body:not(.ws) .tablewrap{border-radius:9px}
+body:not(.ws) th,body:not(.ws) td{padding:7px 10px}
+body:not(.ws) th{font-size:10px}
+body:not(.ws) tbody tr:hover{background:#f8fafd}
+body:not(.ws) .pill{padding:2px 7px;font-size:10px}
+body:not(.ws) .rowactions{gap:4px}
+body:not(.ws) .modal{padding:18px;border-radius:14px;width:min(600px,100%)}
+body:not(.ws) .modalhead{margin-bottom:12px}
+body:not(.ws) .close{width:28px;height:28px;font-size:16px}
+body:not(.ws) .formgrid{gap:10px}
+body:not(.ws) .field{gap:4px}
+body:not(.ws) .field label{font-size:11px}
+body:not(.ws) .field input,body:not(.ws) .field select,body:not(.ws) .field textarea,body:not(.ws) .formgrid textarea{padding:7px 9px;border-radius:7px}
+body:not(.ws) .foot-actions{margin-top:14px}
+body:not(.ws) .rowtext{padding:8px 0}
+body:not(.ws) .day{min-height:80px;padding:7px}
+.btn.iconbtn{display:inline-grid;place-items:center;width:28px;height:28px;padding:0!important}
+.btn.iconbtn.alt:hover{background:#edf6ff;border-color:#c9def3}
+.btn.iconbtn.danger:hover{background:#ffe1e5}
+.btn.iconbtn.live{background:#e5f8ed;color:#188451;border-color:#bfe8d1}.btn.iconbtn.live:hover{background:#d3f2e0}
+/* Course website state: soft dot + label */
+.webstate{display:inline-flex;align-items:center;gap:6px;font-size:11px;font-weight:650;color:#8a99ad}
+.webstate::before{content:'';width:7px;height:7px;border-radius:50%;background:#c3cddb}
+.webstate.live{color:#188451}
+.webstate.live::before{background:#21a87b;box-shadow:0 0 0 3px #21a87b26}
+.colorchip{display:inline-block;width:14px;height:14px;border-radius:4px;margin-right:7px;vertical-align:middle;border:1px solid #0001}
+/* Batch icon with the number of batches of the course */
+.btn.iconbtn.hascount{position:relative}
+.iconcount{position:absolute;top:-6px;right:-6px;min-width:15px;height:15px;padding:0 4px;border-radius:8px;background:var(--blue);color:#fff;font-size:9px;font-weight:800;line-height:15px;text-align:center}
+body:not(.ws) .modal.wide{width:min(920px,100%)}
+/* Sidebar labels stay on one line (group buttons also carry the › caret) */
+.navbtn span:nth-child(2){white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}
+.navbtn span:first-child,.navgroup .navbtn .caret{flex-shrink:0}
+.navgroup>.navbtn{gap:10px}
+/* Weekly Training Plan actions */
+.dayhead{display:flex;align-items:center;justify-content:space-between;margin-bottom:7px}
+.dayhead strong{margin:0!important}
+.dayadd{width:20px;height:20px;border-radius:6px;border:1px solid #d3e2f3;background:#fff;color:var(--blue);font-weight:800;line-height:1;padding:0}
+.dayadd:hover{background:var(--blue);color:#fff}
+.event{position:relative;padding:0!important}
+.event form{margin:0}
+.event-edit{display:block;width:100%;border:0;background:none;color:inherit;font:inherit;text-align:left;padding:6px 18px 6px 6px;border-radius:6px}
+.event-edit:hover{background:#cfe6fd}
+.event-del{position:absolute;top:2px;right:2px;width:16px;height:16px;border:0;border-radius:50%;background:none;color:#7f9bbb;font-size:13px;line-height:1;padding:0}
+.event-del:hover{background:#ffe1e5;color:#bf4050}
+/* Batch-wise attendance list */
+.attlist{border:1px solid var(--line);border-radius:9px;max-height:46vh;overflow:auto}
+.attlist>.muted{padding:12px}
+.atthead{display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;padding:7px 10px;background:#f7f9fd;border-bottom:1px solid var(--line);font-size:11px;color:#53657e;position:sticky;top:0}
+.attrow{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:6px 10px;border-bottom:1px solid #eef2f6;font-size:12px}
+.attrow:last-child{border-bottom:0}
+.attpick{display:flex;gap:4px;flex-shrink:0}
+.attpick label{display:inline-flex;align-items:center;gap:4px;padding:3px 9px;border:1px solid #dbe5ef;border-radius:14px;font-size:11px;font-weight:700;color:#6c7d94;cursor:pointer}
+.attpick input{display:none}
+.attpick label.p:has(input:checked){background:#e5f8ed;border-color:#bfe8d1;color:#188451}
+.attpick label.a:has(input:checked){background:#ffedf0;border-color:#f1ced5;color:#bd4862}
+/* Report Center */
+.reportperiod label{display:inline-flex;align-items:center;gap:6px;font-size:12px;color:#53657e;font-weight:700}
+.reportperiod .filter{min-width:0}
+.reportlist{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+.reportitem{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:10px 12px;border:1px solid var(--line);border-radius:10px;background:#fbfcfe}
+.reportitem b{display:block;font-size:13px}
+.reportitem small{color:#708097;font-size:11px}
+.reportitem .actions{flex-shrink:0;gap:5px}
+@media(max-width:1100px){.reportlist{grid-template-columns:1fr}}
+/* Printing an ERP page: content only */
+@media print{.sidebar,.topbar,.demo,.noprint,.mobile-menu,#modalBack,#toast{display:none!important}.main{padding:0!important;max-width:none}.panel,.stat{box-shadow:none;break-inside:avoid}.split{grid-template-columns:1fr 1fr}body{background:#fff}}
+/* Certificate template editor */
+.certedit{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.25fr);gap:14px;align-items:start}
+.certpreview-panel{position:sticky;top:70px}
+.certpreview{overflow:hidden;border:1px solid var(--line);border-radius:8px;background:#eef2f7}
+.certscale{width:1123px;height:794px;transform-origin:top left}
+.placeholders{margin-top:12px;font-size:12px}
+.placeholders>div{display:flex;flex-wrap:wrap;gap:5px;margin-top:6px}
+.placeholders .chip{border:1px solid #dbe5ef;cursor:pointer;font-family:monospace}
+.placeholders .chip:hover{background:#e2f1ff;color:#22639b}
+@media(max-width:1100px){.certedit{grid-template-columns:1fr}.certpreview-panel{position:static}}
+/* Responsive fixes (tablet / phone only — desktop layout unchanged).
+   Grid columns may shrink below their content, so wide tables scroll inside .tablewrap instead of widening the page. */
+@media(max-width:1100px){
+.split>*,.certedit>*{min-width:0}
+.reportlist{grid-template-columns:1fr}
+}
+@media(max-width:750px){
+.toolbar .actions{width:100%}
+.toolbar .actions .filter{flex:1 1 100%;min-width:0;max-width:100%}
+.rowtext .pill{align-self:flex-start;white-space:nowrap}
+.profile .chip{white-space:nowrap}
+.welcome>.actions,.welcome>form{max-width:100%}
+.reportitem{flex-direction:column;align-items:flex-start}
+.reportperiod{width:100%}
+.reportperiod label{flex:1 1 140px}
+.reportperiod label .filter{flex:1;width:100%}
+.catbar{gap:5px}
+.modal{padding:16px}
+}
