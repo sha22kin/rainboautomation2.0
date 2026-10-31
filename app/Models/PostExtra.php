@@ -17,6 +17,7 @@ class PostExtra extends Model
      * type ==4 : Training course (src_id = page id, name = title, content = JSON details)
      * type ==5 : Course inquiry (src_id = course id, parent_id = page id, name, email, content = JSON details, status = unread/read)
      * type ==13 : Home page "Why Choose Us" section (one row, content = JSON heading + items, see homeWhyContent())
+     * type ==14 : Website translation (content = JSON {en, bn}; status = active when Bangla is given, otherwise pending)
      *
      * ------------------------
      *  Status==

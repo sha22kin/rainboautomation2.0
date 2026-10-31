@@ -197,8 +197,15 @@ Route::get('/subscribes',[AdminController::class,'subscribes'])->name('subscribe
 // Apps Setting
 Route::get('/setting/{type}',[AdminController::class,'setting'])->name('setting');
 Route::post('/setting/{type}/update',[AdminController::class,'settingUpdate'])->name('settingUpdate');
+Route::match(['get','post'],'/translations',[AdminController::class,'translations'])->name('translations');
+Route::match(['get','post'],'/translations/{action}/{id?}',[AdminController::class,'translationsAction'])->name('translationsAction');
 
 });
+
+// Links of the former separate CMS (/website/...) now live under /admin/website/...
+Route::get('/website/{path}',function($path){
+  return redirect('/admin/website/'.$path.(request()->getQueryString() ? '?'.request()->getQueryString() : ''));
+})->where('path','.*');
 
 Route::get('/{slug}',[WelcomeController::class,'pageView'])->name('pageView');
 

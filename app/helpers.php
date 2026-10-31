@@ -70,6 +70,31 @@ function homeWhyContent(){
   return $content;
 }
 
+// Bangla translations added in the CMS (Website → Settings → Website Translations), English => Bangla.
+// Merged into the website language switch (welcome/js/language.js) on top of its built-in dictionary.
+function websiteTranslations(){
+  $list = [];
+  foreach(PostExtra::where('type',14)->where('status','active')->get(['content']) as $row){
+    $data = json_decode($row->content ?: '[]', true) ?: [];
+    if(!empty($data['en']) && !empty($data['bn'])){
+      $list[$data['en']] = $data['bn'];
+    }
+  }
+  return $list;
+}
+
+// Built-in English => Bangla dictionary of the website language switch (welcome/js/language.js)
+function builtinTranslations(){
+  static $dict = null;
+  if($dict === null){
+    $js = (string) @file_get_contents(public_path('welcome/js/language.js'));
+    $start = strpos($js, 'const dict=');
+    $end = strpos($js, "};\n", (int) $start);
+    $dict = ($start !== false && $end !== false) ? (json_decode(substr($js, $start + 11, $end - $start - 10), true) ?: []) : [];
+  }
+  return $dict;
+}
+
 // Active admin page that uses the given design template (cached per request).
 function templatePage($template){
   static $pages = null;

@@ -180,6 +180,31 @@ class CmsTest extends TestCase
         $this->get('/')->assertSee('Test Why Title')->assertSee('Test Eyebrow');
     }
 
+    public function test_new_cms_text_can_be_translated_for_the_bangla_website(): void
+    {
+        $this->actingAs($this->admin());
+        $this->post('/admin/website/home-why-choose-us/create', ['title' => 'Test Brand New Item', 'text' => '', 'color' => '#111111', 'color2' => '#222222']);
+        $this->get('/admin/website/translations')->assertOk()->assertSee('Scan Website');
+
+        // The scan (run in the browser) sends the texts without Bangla; built-in ones are ignored
+        $this->postJson('/admin/website/translations/scan', ['texts' => ['Test Brand New Item', 'Home', 'Test Brand New Item']])
+            ->assertOk()->assertJsonPath('success', true);
+        $row = PostExtra::where('type', 14)->get()->first(fn ($r) => json_decode($r->content, true)['en'] === 'Test Brand New Item');
+        $this->assertNotNull($row);
+        $this->assertSame('pending', $row->status);
+        $this->assertFalse(PostExtra::where('type', 14)->get()->contains(fn ($r) => json_decode($r->content, true)['en'] === 'Home'));
+        $this->get('/admin/website/translations')->assertSee('Test Brand New Item');
+
+        $this->post('/admin/website/translations', ['bn' => [$row->id => 'পরীক্ষার নতুন আইটেম']]);
+        $this->assertSame('active', $row->fresh()->status);
+        $this->get('/')->assertSee('Test Brand New Item')->assertSee(trim(json_encode('Test Brand New Item'), '"').'":"'.trim(json_encode('পরীক্ষার নতুন আইটেম'), '"'), false);
+
+        $this->post('/admin/website/translations/add', ['en' => 'Test Hand Text', 'bn' => 'হাতে লেখা']);
+        $this->get('/admin/website/translations?filter=done')->assertSee('Test Hand Text');
+        $this->get('/admin/website/translations/delete/'.$row->id);
+        $this->assertNull($row->fresh());
+    }
+
     public function test_website_links_point_to_the_public_website(): void
     {
         $this->assertSame(config('cms.website_url').'/contact-us', route('pageView', 'contact-us'));
