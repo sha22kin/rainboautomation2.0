@@ -24,6 +24,12 @@ class WelcomeController extends Controller
 {
   
     
+	// Bangla for page texts the language switch has no translation for (automatic, stored once)
+	public function translateTexts(Request $r){
+		$r->validate(['texts' => 'required|array|max:150', 'texts.*' => 'nullable|string|max:1000']);
+		return response()->json(['success'=>true,'translations'=>(object) autoTranslate($r->texts, 150)]);
+	}
+
 	public function geo_filter($id){
 
       $datas=Country::where('parent_id',$id)->get();

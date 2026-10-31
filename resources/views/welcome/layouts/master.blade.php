@@ -20,7 +20,7 @@
 @yield('body')
 <script src="{{asset('welcome/js/responsive.js')}}?v={{@filemtime(public_path('welcome/js/responsive.js'))}}"></script>
 @stack('js')
-<script>window.RA_TRANSLATIONS=@json((object) websiteTranslations());</script>
+<script>window.RA_TRANSLATIONS=@json((object) websiteTranslations());window.RA_TRANSLATE_URL=@json(route('translateTexts'));</script>
 <script src="{{asset('welcome/js/language.js')}}?v={{@filemtime(public_path('welcome/js/language.js'))}}"></script>
 {{-- Admin → Setting → General: body script / custom JS --}}
 {!!general()->script_body!!}

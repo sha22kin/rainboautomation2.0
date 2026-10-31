@@ -70,7 +70,7 @@ function homeWhyContent(){
   return $content;
 }
 
-// Bangla translations added in the CMS (Website → Settings → Website Translations), English => Bangla.
+// Stored Bangla of website texts (automatic translations, see autoTranslate()), English => Bangla.
 // Merged into the website language switch (welcome/js/language.js) on top of its built-in dictionary.
 function websiteTranslations(){
   $list = [];
@@ -81,6 +81,76 @@ function websiteTranslations(){
     }
   }
   return $list;
+}
+
+// English => Bangla by Google Translate (several texts at once). Texts it could not translate are left out.
+function machineTranslate(array $texts){
+  $result = [];
+  foreach(array_chunk(array_values($texts),10) as $chunk){
+    try{
+      $responses = \Illuminate\Support\Facades\Http::pool(function($pool) use($chunk){
+        foreach($chunk as $i=>$text){
+          $pool->as((string)$i)->timeout(15)->get("https://translate.googleapis.com/translate_a/single",["client"=>"gtx","sl"=>"en","tl"=>"bn","dt"=>"t","q"=>$text]);
+        }
+      });
+    }catch(\Throwable $e){
+      continue;
+    }
+    foreach($chunk as $i=>$text){
+      $response = $responses[(string)$i] ?? null;
+      if(!$response instanceof \Illuminate\Http\Client\Response || !$response->ok()){
+        continue;
+      }
+      $bn = implode("",array_map(fn($part)=>is_array($part) ? (string)($part[0] ?? "") : "",(array)($response->json()[0] ?? [])));
+      if(trim($bn)!==""){
+        $result[$text] = trim($bn);
+      }
+    }
+  }
+  return $result;
+}
+
+// Bangla for English website texts: built-in dictionary, a stored translation, or a new automatic translation
+// (stored as a type 14 row so it is translated only once). Returns English => Bangla.
+function autoTranslate($texts, $limit = 200){
+  $builtin = [];
+  foreach(builtinTranslations() as $en=>$bn){
+    $builtin[trim(preg_replace("/\s+/u"," ",$en))] = $bn;
+  }
+  $stored = [];
+  foreach(PostExtra::where("type",14)->get(["id","content","status"]) as $row){
+    $data = json_decode($row->content ?: "[]",true) ?: [];
+    $stored[$data["en"] ?? ""] = ["row"=>$row,"bn"=>$data["bn"] ?? ""];
+  }
+
+  $result = [];
+  $missing = [];
+  foreach($texts as $text){
+    $text = trim(preg_replace("/\s+/u"," ",(string)$text));
+    if($text==="" || mb_strlen($text)>1000 || !preg_match("/[A-Za-z]{2,}/",$text)){
+      continue;
+    }
+    if(isset($builtin[$text])){
+      $result[$text] = $builtin[$text];
+    }elseif(!empty($stored[$text]["bn"])){
+      $result[$text] = $stored[$text]["bn"];
+    }elseif(count($missing) < $limit){
+      $missing[$text] = $text;
+    }
+  }
+
+  foreach(machineTranslate($missing) as $en=>$bn){
+    $row = $stored[$en]["row"] ?? new PostExtra();
+    $row->type = 14;
+    $row->src_id = 0;
+    $row->name = \Illuminate\Support\Str::limit($en,90);
+    $row->content = json_encode(["en"=>$en,"bn"=>$bn,"auto"=>true],JSON_UNESCAPED_UNICODE);
+    $row->status = "active";
+    $row->addedby_id = $row->addedby_id ?: auth()->id();
+    $row->save();
+    $result[$en] = $bn;
+  }
+  return $result;
 }
 
 // Built-in English => Bangla dictionary of the website language switch (welcome/js/language.js)

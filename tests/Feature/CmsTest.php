@@ -12,12 +12,19 @@ use App\Models\User;
 use App\Support\Erp;
 use Illuminate\Foundation\Testing\DatabaseTransactions;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Http;
 use Tests\TestCase;
 
 // Runs against the configured (shared) database inside a transaction that is rolled back.
 class CmsTest extends TestCase
 {
     use DatabaseTransactions;
+
+    protected function setUp(): void
+    {
+        parent::setUp();
+        Http::fake(['translate.googleapis.com/*' => Http::response([[['স্বয়ংক্রিয় অনুবাদ', 'x']]], 200)]);
+    }
 
     private function admin(): User
     {
@@ -173,36 +180,31 @@ class CmsTest extends TestCase
         $this->assertSame('Edited Why Item', homeWhyContent()['items'][3]['title']);
 
         $this->get('/admin/website/home-why-choose-us/delete/3');
-        $this->get('/')->assertDontSee('Edited Why Item');
+        $this->get('/')->assertDontSee('<h4>Edited Why Item</h4>', false);
         $this->assertCount(4, homeWhyContent()['items']);
 
         $this->post('/admin/website/home-why-choose-us', ['eyebrow' => 'Test Eyebrow', 'title' => 'Test Why Title', 'subtitle' => '']);
         $this->get('/')->assertSee('Test Why Title')->assertSee('Test Eyebrow');
     }
 
-    public function test_new_cms_text_can_be_translated_for_the_bangla_website(): void
+    public function test_website_translates_new_course_text_automatically(): void
     {
         $this->actingAs($this->admin());
-        $this->post('/admin/website/home-why-choose-us/create', ['title' => 'Test Brand New Item', 'text' => '', 'color' => '#111111', 'color2' => '#222222']);
-        $this->get('/admin/website/translations')->assertOk()->assertSee('Scan Website');
+        $course = $this->course();
+        $this->post('/admin/website/training-courses/update/'.$course->id, ['title' => $course->course('title'), 'category' => $course->course('category'), 'description' => 'Test new course description from admin', 'modules' => "Test module line one"]);
 
-        // The scan (run in the browser) sends the texts without Bangla; built-in ones are ignored
-        $this->postJson('/admin/website/translations/scan', ['texts' => ['Test Brand New Item', 'Home', 'Test Brand New Item']])
-            ->assertOk()->assertJsonPath('success', true);
-        $row = PostExtra::where('type', 14)->get()->first(fn ($r) => json_decode($r->content, true)['en'] === 'Test Brand New Item');
-        $this->assertNotNull($row);
-        $this->assertSame('pending', $row->status);
+        // The admin panel translates nothing: no stored translation after saving, and no translation page
+        $this->assertFalse(PostExtra::where('type', 14)->get()->contains(fn ($r) => json_decode($r->content, true)['en'] === 'Test new course description from admin'));
+        $this->get('/admin/website/translations')->assertNotFound();
+
+        // The website asks for Bangla of texts it has none for (Google Translate is faked in setUp) and stores it once
+        $this->postJson('/translate-texts', ['texts' => ['Test new course description from admin', 'Test module line one', 'Home']])
+            ->assertOk()
+            ->assertJsonPath('translations.Test new course description from admin', 'স্বয়ংক্রিয় অনুবাদ')
+            ->assertJsonPath('translations.Test module line one', 'স্বয়ংক্রিয় অনুবাদ')
+            ->assertJsonPath('translations.Home', 'হোম');
         $this->assertFalse(PostExtra::where('type', 14)->get()->contains(fn ($r) => json_decode($r->content, true)['en'] === 'Home'));
-        $this->get('/admin/website/translations')->assertSee('Test Brand New Item');
-
-        $this->post('/admin/website/translations', ['bn' => [$row->id => 'পরীক্ষার নতুন আইটেম']]);
-        $this->assertSame('active', $row->fresh()->status);
-        $this->get('/')->assertSee('Test Brand New Item')->assertSee(trim(json_encode('Test Brand New Item'), '"').'":"'.trim(json_encode('পরীক্ষার নতুন আইটেম'), '"'), false);
-
-        $this->post('/admin/website/translations/add', ['en' => 'Test Hand Text', 'bn' => 'হাতে লেখা']);
-        $this->get('/admin/website/translations?filter=done')->assertSee('Test Hand Text');
-        $this->get('/admin/website/translations/delete/'.$row->id);
-        $this->assertNull($row->fresh());
+        $this->get('/training-academy')->assertSee(trim(json_encode('Test module line one'), '"').'":"'.trim(json_encode('স্বয়ংক্রিয় অনুবাদ'), '"'), false);
     }
 
     public function test_website_links_point_to_the_public_website(): void

@@ -23,6 +23,7 @@ Route::get('/sitemap.xml',[WelcomeController::class,'siteMapXml'])->name('siteMa
 Route::get('/search',[WelcomeController::class,'search'])->name('search');
 Route::post('/contact-mail',[WelcomeController::class,'contactMail'])->middleware('throttle:10,1')->name('contactMail');
 Route::post('/course-inquiry',[WelcomeController::class,'courseInquiry'])->middleware('throttle:10,1')->name('courseInquiry');
+Route::post('/translate-texts',[WelcomeController::class,'translateTexts'])->middleware('throttle:30,1')->name('translateTexts');
 Route::post('/subscribe',[WelcomeController::class,'subscribe'])->name('subscribe');
 Route::get('/switch/{lang?}',[WelcomeController::class,'language'])->name('language');
 Route::get('/geo/filter/{id}',[WelcomeController::class,'geo_filter'])->name('geo_filter');
@@ -197,8 +198,6 @@ Route::get('/subscribes',[AdminController::class,'subscribes'])->name('subscribe
 // Apps Setting
 Route::get('/setting/{type}',[AdminController::class,'setting'])->name('setting');
 Route::post('/setting/{type}/update',[AdminController::class,'settingUpdate'])->name('settingUpdate');
-Route::match(['get','post'],'/translations',[AdminController::class,'translations'])->name('translations');
-Route::match(['get','post'],'/translations/{action}/{id?}',[AdminController::class,'translationsAction'])->name('translationsAction');
 
 });
 

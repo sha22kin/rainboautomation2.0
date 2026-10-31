@@ -56,7 +56,6 @@ class WebsiteMenu
                 ['Mail Setting', 'admin.setting', ['mail'], ['admin/website/setting/mail*'], ['appsSetting', 'mail']],
                 ['SMS Setting', 'admin.setting', ['sms'], ['admin/website/setting/sms*'], ['appsSetting', 'sms']],
                 ['Social Setting', 'admin.setting', ['social'], ['admin/website/setting/social*'], ['appsSetting', 'social']],
-                ['Website Translations', 'admin.translations', [], ['admin/website/translations*'], ['appsSetting', 'general']],
             ],
         ];
     }

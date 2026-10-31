@@ -91,7 +91,6 @@ trait UserPermission{
 
 				empty(json_decode($activeRole->permission, true)['appsSetting']['general']) && \Request::is('admin/website/setting/general*') ||
 				empty(json_decode($activeRole->permission, true)['appsSetting']['general']) && \Request::is('admin/website/setting/logo*') ||
-				empty(json_decode($activeRole->permission, true)['appsSetting']['general']) && \Request::is('admin/website/translations*') ||
 				empty(json_decode($activeRole->permission, true)['appsSetting']['general']) && \Request::is('admin/website/setting/favicon*') ||
 				empty(json_decode($activeRole->permission, true)['appsSetting']['mail']) && \Request::is('admin/website/setting/mail*') ||
 				empty(json_decode($activeRole->permission, true)['appsSetting']['sms']) && \Request::is('admin/website/setting/sms*') ||
