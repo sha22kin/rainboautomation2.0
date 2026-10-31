@@ -92,7 +92,6 @@
   </g>
  </g>
  <g class="ra-pick-cube" filter="url(#rShadow)"><path d="M449 91l30-14 30 14-30 16Z" fill="#7ce5ca"/><path d="M449 91l30 16v29l-30-16Z" fill="#18b698"/><path d="M479 107l30-16v29l-30 16Z" fill="#2389c7"/></g>
- <g class="ra-status-chip"><rect x="406" y="27" width="174" height="40" rx="20" fill="#ffffff" stroke="#dce7f3"/><circle cx="425" cy="47" r="6" fill="#28bc79"/><text x="438" y="44" fill="#49627e" font-weight="800" font-size="10">ROBOT CELL STATUS</text><text x="438" y="57" fill="#208d66" font-weight="900" font-size="11">ACTIVE · INDUSTRY 4.0</text></g>
 </svg></div>
     <div class="ra-robot-caption"><div><small>SMART MANUFACTURING</small><strong>Animated 6-Axis Robotic Manipulator &amp; Intelligent Control</strong></div><span class="ra-status">● LIVE AUTOMATION</span></div>
   </div>
@@ -139,31 +138,22 @@
 </div>
 </section>
 <section>
+@php $why = homeWhyContent(); @endphp
 <div class="wrap">
 <div class="section-head">
-<span class="eyebrow"><i></i> Why Choose Us</span>
-<h2>Why Partner with Rainbow Automation</h2>
-<p>
-            Practical engineering expertise, integrated project delivery and hands-on technology training—supporting institutions and industries from concept through commissioning.
-          </p>
+@if($why['eyebrow'])<span class="eyebrow"><i></i> {{$why['eyebrow']}}</span>@endif
+@if($why['title'])<h2>{{$why['title']}}</h2>@endif
+@if($why['subtitle'])<p>
+            {{$why['subtitle']}}
+          </p>@endif
 </div>
 <div class="why-grid">
+@foreach($why['items'] as $i => $item)
 <div class="feature-card">
-<div class="feature-icon" style="background:linear-gradient(135deg,var(--green),#5dcf7f)">01</div>
-<div><h4>Logo-Matched Theme</h4><p>Green, gold, red, purple and blue from your logo are used in a balanced way across headings, cards and CTA areas.</p></div>
+<div class="feature-icon" style="background:linear-gradient(135deg,{{$item['color']}},{{$item['color2'] ?? $item['color']}})">{{str_pad($i + 1, 2, '0', STR_PAD_LEFT)}}</div>
+<div><h4>{{$item['title']}}</h4>@if($item['text'])<p>{{$item['text']}}</p>@endif</div>
 </div>
-<div class="feature-card">
-<div class="feature-icon" style="background:linear-gradient(135deg,var(--gold),#ffcb66)">02</div>
-<div><h4>No Product List Clutter</h4><p>Instead of generic product listing, the homepage focuses on premium business presentation and lead generation.</p></div>
-</div>
-<div class="feature-card">
-<div class="feature-icon" style="background:linear-gradient(135deg,var(--red),#ff6b75)">03</div>
-<div><h4>Training-Centric Section</h4><p>Your provided course list is now integrated directly into the website structure for better clarity and credibility.</p></div>
-</div>
-<div class="feature-card">
-<div class="feature-icon" style="background:linear-gradient(135deg,var(--blue),var(--purple))">04</div>
-<div><h4>Solar Business Included</h4><p>The home design now reflects that Rainbow Automation provides complete solar system solutions in addition to training and lab projects.</p></div>
-</div>
+@endforeach
 </div>
 </div>
 </section>

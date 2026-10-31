@@ -156,6 +156,30 @@ class CmsTest extends TestCase
         $this->get('/admin')->assertSee('Test Branch');
     }
 
+    public function test_home_why_choose_us_items_can_be_added_edited_and_deleted(): void
+    {
+        $this->actingAs($this->admin());
+        $this->get('/')->assertSee('Logo-Matched Theme');
+        $this->get('/admin/website/home-why-choose-us')->assertOk()->assertSee('Logo-Matched Theme');
+        $this->get('/admin/website/home-why-choose-us/create')->assertOk();
+
+        $this->post('/admin/website/home-why-choose-us/create', ['title' => 'Test Why Item', 'text' => 'Test text', 'color' => '#111111', 'color2' => '#222222'])
+            ->assertRedirect('/admin/website/home-why-choose-us');
+        $this->get('/')->assertSee('Test Why Item')->assertSee('05');
+
+        $this->get('/admin/website/home-why-choose-us/edit/4')->assertOk()->assertSee('Test Why Item');
+        $this->post('/admin/website/home-why-choose-us/edit/4', ['title' => 'Edited Why Item', 'text' => '', 'color' => '#111111', 'color2' => '#222222']);
+        $this->get('/admin/website/home-why-choose-us/up/4');
+        $this->assertSame('Edited Why Item', homeWhyContent()['items'][3]['title']);
+
+        $this->get('/admin/website/home-why-choose-us/delete/3');
+        $this->get('/')->assertDontSee('Edited Why Item');
+        $this->assertCount(4, homeWhyContent()['items']);
+
+        $this->post('/admin/website/home-why-choose-us', ['eyebrow' => 'Test Eyebrow', 'title' => 'Test Why Title', 'subtitle' => '']);
+        $this->get('/')->assertSee('Test Why Title')->assertSee('Test Eyebrow');
+    }
+
     public function test_website_links_point_to_the_public_website(): void
     {
         $this->assertSame(config('cms.website_url').'/contact-us', route('pageView', 'contact-us'));

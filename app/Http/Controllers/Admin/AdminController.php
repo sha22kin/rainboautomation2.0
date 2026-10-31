@@ -932,6 +932,101 @@ class AdminController extends Controller
     return view(adminTheme().'industrialCapabilities.cardEdit',compact('page','template','section','listRoute','card','data','sectionTitle'));
   }
 
+  // Home page "Why Choose Us" section: heading texts + item list (Admin → Home: Why Choose Us)
+  public function homeWhy(Request $r){
+    if($r->isMethod('post')){
+      $r->validate([
+        'eyebrow' => 'nullable|max:100',
+        'title' => 'nullable|max:191',
+        'subtitle' => 'nullable|max:500',
+      ]);
+      $content =homeWhyContent();
+      $content['eyebrow']=trim((string)$r->eyebrow);
+      $content['title']=trim((string)$r->title);
+      $content['subtitle']=trim((string)$r->subtitle);
+      $this->saveHomeWhy($content);
+
+      Session()->flash('success','Why Choose Us Section Updated Successfully Done!');
+      return redirect()->route('admin.homeWhy');
+    }
+
+    $content =homeWhyContent();
+    return view(adminTheme().'homeWhy.homeWhy',compact('content'));
+  }
+
+  // Add / edit / delete / move one "Why Choose Us" item (addressed by its position in the list)
+  public function homeWhyAction(Request $r,$action,$index=null){
+    $content =homeWhyContent();
+    $items =$content['items'];
+
+    $item =null;
+    if($action!='create'){
+      if(!is_numeric($index) || !isset($items[(int)$index])){
+        Session()->flash('error','Item Are Not Found');
+        return redirect()->route('admin.homeWhy');
+      }
+      $index =(int)$index;
+      $item =$items[$index];
+    }
+
+    if($action=='delete'){
+      array_splice($items,$index,1);
+      $content['items']=$items;
+      $this->saveHomeWhy($content);
+      Session()->flash('success','Item Are Successfully Deleted!');
+      return redirect()->route('admin.homeWhy');
+    }
+
+    if($action=='up' || $action=='down'){
+      $swap =$action=='up' ? $index-1 : $index+1;
+      if(isset($items[$swap])){
+        [$items[$index],$items[$swap]] =[$items[$swap],$items[$index]];
+        $content['items']=$items;
+        $this->saveHomeWhy($content);
+      }
+      return redirect()->route('admin.homeWhy');
+    }
+
+    if(!in_array($action,['create','edit'])){
+      abort(404);
+    }
+
+    if($r->isMethod('post')){
+      $r->validate([
+        'title' => 'required|max:100',
+        'text' => 'nullable|max:500',
+        'color' => ['required','regex:/^#[0-9a-fA-F]{6}$/'],
+        'color2' => ['required','regex:/^#[0-9a-fA-F]{6}$/'],
+      ]);
+      $row =['title'=>$r->title,'text'=>(string)$r->text,'color'=>$r->color,'color2'=>$r->color2];
+      if($item){
+        $items[$index]=$row;
+      }else{
+        $items[]=$row;
+      }
+      $content['items']=$items;
+      $this->saveHomeWhy($content);
+
+      Session()->flash('success','Item Are Successfully '.($item ? 'Updated' : 'Added').'!');
+      return $r->save_new ? redirect()->route('admin.homeWhyAction','create') : redirect()->route('admin.homeWhy');
+    }
+
+    $data =$item ?: ['title'=>null,'text'=>null,'color'=>'#2684d9','color2'=>'#8b28a4'];
+    $number =$item ? $index+1 : count($items)+1;
+    return view(adminTheme().'homeWhy.homeWhyEdit',compact('item','index','data','number'));
+  }
+
+  private function saveHomeWhy($content){
+    $extra =homeWhyRow() ?: new PostExtra();
+    $extra->src_id=0;
+    $extra->type=13;
+    $extra->name='Home Why Choose Us';
+    $extra->content=json_encode($content,JSON_UNESCAPED_UNICODE);
+    $extra->status='active';
+    $extra->addedby_id=Auth::id();
+    $extra->save();
+  }
+
   // Training Academy page texts: hero, course chips, catalog heading (Admin → Training Courses → Page Content)
   public function trainingPage(Request $r){
     $page =templatePage('Training Academy');

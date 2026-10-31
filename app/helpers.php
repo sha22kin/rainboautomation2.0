@@ -36,6 +36,40 @@ function designTemplates(){
   ];
 }
 
+// Home page "Why Choose Us" section (Admin → Home: Why Choose Us). Stored as one PostExtra row (type 13);
+// until it is saved the design text is shown. Each item: title, text, color, color2 (icon gradient).
+function homeWhyDefaults(){
+  return [
+    'eyebrow' => 'Why Choose Us',
+    'title' => 'Why Partner with Rainbow Automation',
+    'subtitle' => 'Practical engineering expertise, integrated project delivery and hands-on technology training—supporting institutions and industries from concept through commissioning.',
+    'items' => [
+      ['title'=>'Logo-Matched Theme','text'=>'Green, gold, red, purple and blue from your logo are used in a balanced way across headings, cards and CTA areas.','color'=>'#2eb453','color2'=>'#5dcf7f'],
+      ['title'=>'No Product List Clutter','text'=>'Instead of generic product listing, the homepage focuses on premium business presentation and lead generation.','color'=>'#f3a51b','color2'=>'#ffcb66'],
+      ['title'=>'Training-Centric Section','text'=>'Your provided course list is now integrated directly into the website structure for better clarity and credibility.','color'=>'#ec2331','color2'=>'#ff6b75'],
+      ['title'=>'Solar Business Included','text'=>'The home design now reflects that Rainbow Automation provides complete solar system solutions in addition to training and lab projects.','color'=>'#2684d9','color2'=>'#8b28a4'],
+    ],
+  ];
+}
+
+function homeWhyRow(){
+  return PostExtra::where('type',13)->first();
+}
+
+function homeWhyContent(){
+  $defaults = homeWhyDefaults();
+  $row = homeWhyRow();
+  $saved = $row ? (json_decode($row->content ?: '[]', true) ?: []) : [];
+  $content = array_merge($defaults, $saved);
+  foreach(['eyebrow','title','subtitle'] as $key){
+    if(!isset($saved[$key])){
+      $content[$key] = $defaults[$key];
+    }
+  }
+  $content['items'] = array_values($content['items'] ?? []);
+  return $content;
+}
+
 // Active admin page that uses the given design template (cached per request).
 function templatePage($template){
   static $pages = null;

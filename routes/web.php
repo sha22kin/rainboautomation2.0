@@ -102,6 +102,8 @@ Route::match(['get','post'],'/contact-locations',[AdminController::class,'contac
 Route::match(['get','post'],'/industrial-capabilities',[AdminController::class,'industrialCapabilities'])->name('industrialCapabilities');
 Route::match(['get','post'],'/solar-solution',[AdminController::class,'solarSolution'])->name('solarSolution');
 Route::match(['get','post'],'/services-page',[AdminController::class,'servicesPage'])->name('servicesPage');
+Route::match(['get','post'],'/home-why-choose-us',[AdminController::class,'homeWhy'])->name('homeWhy');
+Route::match(['get','post'],'/home-why-choose-us/{action}/{index?}',[AdminController::class,'homeWhyAction'])->name('homeWhyAction');
 Route::match(['get','post'],'/solution-cards/{section}/{action}/{id?}',[AdminController::class,'solutionCardsAction'])->name('solutionCardsAction');
 Route::match(['get','post'],'/solution-items/{section}/{list}/{action}/{index?}',[AdminController::class,'solutionItemsAction'])->name('solutionItemsAction');
 Route::get('/training-courses',[AdminController::class,'trainingCourses'])->name('trainingCourses');

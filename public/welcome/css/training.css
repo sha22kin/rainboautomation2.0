@@ -122,3 +122,14 @@ html{scroll-padding-top:100px}body{overflow-x:hidden}
 @keyframes trHead{0%,100%{transform:translateX(0)}50%{transform:translateX(22px)}}
 @media(max-width:980px){.training-hero-grid{grid-template-columns:1fr;gap:28px}.training-visual{min-height:auto}.tr-course-strip{grid-template-columns:repeat(3,1fr)}}
 @media(max-width:620px){.training-visual{padding:16px;border-radius:28px}.tr-stage{height:300px}.tr-hmi{left:12px;top:12px;transform:scale(.92);transform-origin:left top}.tr-vfd{right:12px;top:14px;transform:scale(.92);transform-origin:right top}.tr-cloud{right:12px;bottom:12px;transform:scale(.92);transform-origin:right bottom}.tr-robot{left:126px;top:90px;transform:scale(.86);transform-origin:left top}.tr-monitor{left:184px;bottom:22px;transform:scale(.9);transform-origin:left bottom}.tr-cnc{left:12px;bottom:12px;transform:scale(.92);transform-origin:left bottom}.tr-course-strip{grid-template-columns:repeat(2,1fr)}}
+
+/* Course details modules: shown exactly as typed in the CMS (no automatic numbering, no bullets) */
+.modules{list-style:none;padding:0;margin:6px 0 14px}
+.modules li{padding:6px 0;color:#2b3a4f;line-height:1.6}
+
+/* Training hero: animated dashboard (welcome/animation/training-dashboard.html) shown in a scaled iframe */
+.hero-live-visual{width:100%;min-width:0;padding:15px;border-radius:40px;background:linear-gradient(135deg,#fff,#e9f4ff);box-shadow:0 25px 55px #29578518;border:1px solid #e3edfb}
+.hero-dashboard-frame{width:100%;overflow:hidden;position:relative;border-radius:28px;aspect-ratio:1.26;background:#eaf4ff}
+.hero-dashboard-frame iframe{width:1250px;height:985px;border:0;display:block;position:absolute;left:0;top:0;transform-origin:top left;transform:scale(var(--dashboard-scale,.4));background:#f1f8ff;max-width:none}
+@media(max-width:980px){.hero-live-visual{max-width:700px}}
+@media(max-width:750px){.hero-live-visual{padding:9px;border-radius:25px}.hero-dashboard-frame{border-radius:20px}}

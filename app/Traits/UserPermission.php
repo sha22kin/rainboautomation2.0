@@ -23,6 +23,8 @@ trait UserPermission{
 				empty(json_decode($activeRole->permission, true)['pages']['add']) && \Route::is('admin.pagesUpdate') ||
 				empty(json_decode($activeRole->permission, true)['pages']['delete']) && \Route::is('admin.pagesDelete') ||
 				empty(json_decode($activeRole->permission, true)['pages']['add']) && \Route::is('admin.contactLocations') ||
+				empty(json_decode($activeRole->permission, true)['pages']['add']) && \Route::is('admin.homeWhy') ||
+				empty(json_decode($activeRole->permission, true)['pages']['add']) && \Route::is('admin.homeWhyAction') ||
 				empty(json_decode($activeRole->permission, true)['pages']['add']) && \Route::is('admin.industrialCapabilities') ||
 				empty(json_decode($activeRole->permission, true)['pages']['add']) && \Route::is('admin.trainingCourses') ||
 				empty(json_decode($activeRole->permission, true)['pages']['add']) && \Route::is('admin.trainingCoursesAction') ||

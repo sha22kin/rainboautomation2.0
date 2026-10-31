@@ -17,6 +17,7 @@ class WebsiteMenu
             ],
             'Pages' => [
                 ['All Pages', 'admin.pages', [], ['admin/website/pages*'], ['pages', 'list']],
+                ['Home: Why Choose Us', 'admin.homeWhy', [], ['admin/website/home-why-choose-us*'], ['pages', 'add']],
                 ['Contact Locations', 'admin.contactLocations', [], ['admin/website/contact-locations*'], ['pages', 'add']],
                 ['Industrial Solution', 'admin.industrialCapabilities', [], ['admin/website/industrial-capabilities*', 'admin/website/solution-*/industrial*'], ['pages', 'add']],
                 ['Solar Solution', 'admin.solarSolution', [], ['admin/website/solar-solution*', 'admin/website/solution-*/solar*'], ['pages', 'add']],
