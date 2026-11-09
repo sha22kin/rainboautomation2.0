@@ -78,7 +78,7 @@ class CertificateTemplate
     public static function sample(){
         return [
             '{student}' => 'Student Name', '{student_id}' => 'STU-1001', '{course}' => 'PLC Programming & Industrial Control System',
-            '{duration}' => '30 Hours', '{grade}' => 'A+', '{points}' => 'GPA 3.75 · CGPA 3.80', '{gpa}' => '3.75', '{cgpa}' => '3.80', '{issued}' => now()->format('d F Y'), '{code}' => 'CERT-01', '{batch}' => 'BAT-01',
+            '{duration}' => '30 Hours', '{grade}' => 'A+', '{points}' => 'GPA 3.75 · CGPA 3.80', '{gpa}' => '3.75', '{cgpa}' => '3.80', '{issued}' => now()->format('d F Y'), '{code}' => 'RA-7K3P-9QX2', '{batch}' => 'BAT-01',
             '{branch}' => Setting::get('branch', 'Training Center'),
         ];
     }

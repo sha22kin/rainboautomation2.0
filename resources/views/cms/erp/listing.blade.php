@@ -8,6 +8,7 @@
     // Small line icons of the row action buttons (the label stays as tooltip / screen reader text)
     $icon = function ($name) {
         $paths = [
+            'add' => '<path d="M12 5v14M5 12h14"/>',
             'edit' => '<path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"/>',
             'delete' => '<path d="M3 6h18"/><path d="M8 6V4h8v2"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6M14 11v6"/>',
             'update' => '<path d="M21 12a9 9 0 1 1-3-6.7L21 8"/><path d="M21 3v5h-5"/>',
@@ -67,10 +68,20 @@
             break;
         case 'students':
             $headers = ['ID', 'Name', 'Phone', 'Enrolled Course', 'Batch', 'Remaining Due', 'Action'];
+            // Every course of a student is one row; they share the Student ID and are listed together ("↳" = another course)
+            $previousNo = null;
             foreach($records as $x){
+                $no = $x->student_no ?: $x->id;
+                $more = $no === $previousNo;
+                $previousNo = $no;
                 $rows[] = ['search' => $search($x->code, $x->name, $x->phone, Erp::courseName($x->course_id), $x->batch?->code, $x->admitted_on?->format('Y-m-d')), 'cells' => [
-                    e($x->code), e($x->name), e($x->phone), e(Erp::courseName($x->course_id)), e($x->batch?->code ?: 'Not assigned'), '<b>'.Erp::fmt($x->due()).'</b>',
-                    $actions($x->id, ['name' => $x->name, 'phone' => $x->phone, 'course' => $x->course_id, 'batch' => $x->batch_id]),
+                    // Another course of the same student: only the course (name and mobile are on the row above)
+                    $more ? '<span class="muted" title="Another course of the same student">↳</span>' : e($x->code),
+                    $more ? '' : e($x->name).($x->account_id ? ' <span title="Has a website student account" style="font-size:11px;font-weight:700;color:#287dcc;background:#eaf3ff;border-radius:999px;padding:2px 8px;white-space:nowrap">Website</span>' : ''),
+                    $more ? '' : e($x->phone),
+                    e(Erp::courseName($x->course_id)), e($x->batch?->code ?: 'Not assigned'), '<b>'.Erp::fmt($x->due()).'</b>',
+                    $actions($x->id, ['name' => $x->name, 'phone' => $x->phone, 'course' => $x->course_id, 'batch' => $x->batch_id],
+                        $iconBtn('add', 'Add Course', 'alt', 'onclick="'.e('addStudentCourse('.json_encode($x->id).','.json_encode(['name' => $x->name, 'phone' => $x->phone, 'course' => $x->course_id, 'batch' => $x->batch_id], JSON_HEX_APOS | JSON_HEX_QUOT).')').'"')),
                 ]];
             }
             break;
@@ -97,17 +108,22 @@
             foreach($records as $x){
                 $rows[] = ['search' => $search($x->student?->name, $x->batch?->code, $x->date?->format('Y-m-d'), $x->status), 'cells' => [
                     e($x->student?->name ?: '—'), e($x->batch?->code), $date($x->date), Erp::badge($x->status),
-                    $actions($x->id, ['student' => $x->student_id, 'batch' => $x->batch_id, 'date' => $x->date?->format('Y-m-d'), 'status' => $x->status]),
+                    $actions($x->id, ['student' => $studentMain[$x->student_id] ?? $x->student_id, 'batch' => $x->batch_id, 'date' => $x->date?->format('Y-m-d'), 'status' => $x->status]),
                 ]];
             }
             break;
         case 'fees':
-            $headers = ['Receipt', 'Student', 'Date', 'Method', 'Amount', 'Action'];
+            $headers = ['Receipt', 'Student', 'Course', 'Date', 'Method', 'Amount', 'Total Due', 'Action'];
+            // Total due of each student: every course of the same Student ID
+            $dueByStudent = \App\Models\Erp\Student::with('payments')->get()->groupBy(fn ($s) => $s->student_no ?: $s->id)->map(fn ($list) => $list->sum(fn ($s) => $s->due()));
             foreach($records as $x){
-                $receipt = $iconBtn('receipt', 'Receipt', 'alt', 'onclick="receipt(this)" data-id="'.e($x->code).'" data-student="'.e($x->student?->name ?: '—').'" data-date="'.$date($x->date).'" data-method="'.e($x->method).'" data-amount="'.e(Erp::fmt($x->amount)).'"');
-                $rows[] = ['search' => $search($x->code, $x->student?->name, $x->date?->format('Y-m-d'), $x->method, $x->amount), 'cells' => [
-                    e($x->code), e($x->student?->name ?: '—'), $date($x->date), e($x->method), '<b>'.Erp::fmt($x->amount).'</b>',
-                    $actions($x->id, ['student' => $x->student_id, 'amount' => $x->amount, 'date' => $x->date?->format('Y-m-d'), 'method' => $x->method], $receipt),
+                $student = $x->student;
+                $dueNow = $student ? ($dueByStudent[$student->student_no ?: $student->id] ?? 0) : 0;
+                $receipt = $iconBtn('receipt', 'Receipt', 'alt', 'onclick="receipt(this)" data-id="'.e($x->code).'" data-student="'.e($student?->name ?: '—').'" data-code="'.e($student?->code ?: '—').'" data-course="'.e(Erp::courseName($student?->course_id)).'" data-date="'.$date($x->date).'" data-method="'.e($x->method).'" data-amount="'.e(Erp::fmt($x->amount)).'" data-due="'.e(Erp::fmt($dueNow)).'"');
+                $rows[] = ['search' => $search($x->code, $student?->name, $student?->code, Erp::courseName($student?->course_id), $x->date?->format('Y-m-d'), $x->method, $x->amount), 'cells' => [
+                    e($x->code), e($student?->name ?: '—').($student ? '<br><small class="muted">'.e($student->code).'</small>' : ''), e(Erp::courseName($student?->course_id)), $date($x->date), e($x->method), '<b>'.Erp::fmt($x->amount).'</b>',
+                    $dueNow > 0 ? '<b style="color:#d22d4b">'.Erp::fmt($dueNow).'</b>' : '<b style="color:#1f8a46">Paid</b>',
+                    $actions($x->id, ['student' => $studentMain[$x->student_id] ?? $x->student_id, 'course' => $x->student?->course_id, 'amount' => $x->amount, 'date' => $x->date?->format('Y-m-d'), 'method' => $x->method], $receipt),
                 ]];
             }
             break;
@@ -134,7 +150,7 @@
             foreach($records as $x){
                 $rows[] = ['search' => $search($x->code, $x->student?->name, Erp::courseName($x->course_id), $x->grade, $x->issued?->format('Y-m-d')), 'cells' => [
                     e($x->code), e($x->student?->name ?: '—'), e(Erp::courseName($x->course_id)), '<b>'.e($x->grade).'</b>'.($x->points() ? ' <span class="muted">· '.e($x->points()).'</span>' : ''), $date($x->issued),
-                    $actions($x->id, ['student' => $x->student_id, 'course' => $x->course_id, 'issued' => $x->issued?->format('Y-m-d'), 'grade' => $x->grade, 'gpa' => $x->gpa, 'cgpa' => $x->cgpa],
+                    $actions($x->id, ['student' => $studentMain[$x->student_id] ?? $x->student_id, 'course' => $x->course_id, 'issued' => $x->issued?->format('Y-m-d'), 'grade' => $x->grade, 'gpa' => $x->gpa, 'cgpa' => $x->cgpa],
                         $iconBtn('print', 'Print certificate', 'alt', 'onclick="'.e("window.open('".route('erp.certificatePrint', $x->id)."')").'"')),
                 ]];
             }

@@ -9,6 +9,8 @@ use App\Http\Controllers\Cms\ErpController;
 use App\Http\Controllers\Admin\PostsController;
 use App\Http\Controllers\Admin\MenusController;
 use App\Http\Controllers\Admin\AdminController;
+use App\Http\Controllers\Student\StudentPortalController;
+use App\Http\Controllers\Welcome\CertificateFinderController;
 
 Route::get('/',[WelcomeController::class,'index'])->name('index');
 Route::get('/about-us',[WelcomeController::class,'about'])->name('about');
@@ -23,6 +25,8 @@ Route::get('/sitemap.xml',[WelcomeController::class,'siteMapXml'])->name('siteMa
 Route::get('/search',[WelcomeController::class,'search'])->name('search');
 Route::post('/contact-mail',[WelcomeController::class,'contactMail'])->middleware('throttle:10,1')->name('contactMail');
 Route::post('/course-inquiry',[WelcomeController::class,'courseInquiry'])->middleware('throttle:10,1')->name('courseInquiry');
+Route::get('/find-certificate',[CertificateFinderController::class,'find'])->middleware('throttle:20,1')->name('certificates.find');
+Route::get('/certificate/{serial}',[CertificateFinderController::class,'show'])->middleware('throttle:20,1')->where('serial','[A-Za-z0-9-]{8,20}')->name('certificates.show');
 Route::post('/translate-texts',[WelcomeController::class,'translateTexts'])->middleware('throttle:30,1')->name('translateTexts');
 Route::post('/subscribe',[WelcomeController::class,'subscribe'])->name('subscribe');
 Route::get('/switch/{lang?}',[WelcomeController::class,'language'])->name('language');
@@ -52,6 +56,25 @@ Route::any('/forgot-password',[AuthController::class,'forgotPassword'])->name('f
 Route::get('/reset-password/{token}',[AuthController::class,'resetPassword'])->name('resetPassword');
 Route::post('/reset-password-check',[AuthController::class,'resetPasswordCheck'])->name('resetPasswordCheck');
 Route::any('/register',[AuthController::class,'register'])->name('register');
+
+// Website student accounts (footer → Student Login / Register), own "student" guard
+Route::group(['prefix'=>'student', 'as'=>'student.', 'controller'=>StudentPortalController::class], function(){
+Route::get('/register','showRegister')->middleware('guest:student')->name('register');
+Route::post('/register','register')->middleware(['guest:student','throttle:20,1']);
+Route::get('/login','showLogin')->middleware('guest:student')->name('login');
+Route::post('/login','login')->middleware(['guest:student','throttle:20,1']);
+Route::get('/forgot-password','showForgot')->middleware('guest:student')->name('password.forgot');
+Route::post('/forgot-password','sendResetLink')->middleware(['guest:student','throttle:5,1']);
+Route::get('/reset-password/{token}','showReset')->middleware('guest:student')->name('password.reset');
+Route::post('/reset-password','resetPassword')->middleware(['guest:student','throttle:10,1'])->name('password.update');
+Route::post('/logout','logout')->middleware('auth:student')->name('logout');
+Route::get('/profile','profile')->middleware('auth:student')->name('profile');
+Route::get('/profile/edit','editProfile')->middleware('auth:student')->name('profile.edit');
+Route::post('/profile/edit','updateProfile')->middleware(['auth:student','throttle:20,1']);
+Route::post('/profile/photo/remove','removePhoto')->middleware(['auth:student','throttle:20,1'])->name('photo.remove');
+Route::post('/profile/password','updatePassword')->middleware(['auth:student','throttle:10,1'])->name('password');
+Route::get('/certificates/{id}','certificate')->middleware('auth:student')->whereNumber('id')->name('certificate');
+});
 
 // Training ERP (CMS design)
 Route::group(['prefix'=>'admin', 'as'=>'erp.','middleware'=>['auth','role:admin']], function(){
@@ -110,6 +133,8 @@ Route::match(['get','post'],'/solution-items/{section}/{list}/{action}/{index?}'
 Route::get('/training-courses',[AdminController::class,'trainingCourses'])->name('trainingCourses');
 Route::match(['get','post'],'/training-page',[AdminController::class,'trainingPage'])->name('trainingPage');
 Route::match(['get','post'],'/training-inquiries',[AdminController::class,'trainingInquiries'])->name('trainingInquiries');
+Route::get('/student-accounts',[AdminController::class,'studentAccounts'])->name('studentAccounts');
+Route::post('/student-accounts/{action}/{id}',[AdminController::class,'studentAccountsAction'])->whereNumber('id')->name('studentAccountsAction');
 Route::get('/training-inquiries/{action}/{id}',[AdminController::class,'trainingInquiriesAction'])->name('trainingInquiriesAction');
 Route::any('/training-courses/{action}/{id?}',[AdminController::class,'trainingCoursesAction'])->name('trainingCoursesAction');
 //Page Management End

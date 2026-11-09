@@ -40,6 +40,12 @@ return [
             'driver' => 'session',
             'provider' => 'users',
         ],
+
+        // Website student accounts (footer → Student Login / Register)
+        'student' => [
+            'driver' => 'session',
+            'provider' => 'students',
+        ],
     ],
 
     /*
@@ -63,6 +69,11 @@ return [
         'users' => [
             'driver' => 'eloquent',
             'model' => App\Models\User::class,
+        ],
+
+        'students' => [
+            'driver' => 'eloquent',
+            'model' => App\Models\StudentAccount::class,
         ],
 
         // 'users' => [
@@ -94,6 +105,14 @@ return [
         'users' => [
             'provider' => 'users',
             'table' => 'password_reset_tokens',
+            'expire' => 60,
+            'throttle' => 60,
+        ],
+
+        // Website students: a link is valid for 60 minutes, one new link per email a minute
+        'students' => [
+            'provider' => 'students',
+            'table' => 'student_password_resets',
             'expire' => 60,
             'throttle' => 60,
         ],

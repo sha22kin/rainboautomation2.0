@@ -19,3 +19,6 @@ yarn-error.log
 /.vscode
 /desing
 error_log
+
+# Photos uploaded by website students (created on the server)
+/public/medies/students/

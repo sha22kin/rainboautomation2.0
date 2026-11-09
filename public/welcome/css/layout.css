@@ -13,7 +13,7 @@ header.ra-header img,footer.ra-footer img{max-width:100%;display:block}
 .meta-bar{background:#111822;color:#d7dde8;font-size:12px}
 .meta-bar .wrap{display:flex;justify-content:space-between;gap:14px;align-items:center;padding:10px 0}
 header.ra-header{position:sticky;top:0;z-index:40;background:rgba(255,255,255,.92);backdrop-filter:blur(10px);border-bottom:1px solid rgba(0,0,0,.06)}
-header.ra-header .nav{display:flex;align-items:center;justify-content:space-between;gap:24px;padding:14px 0}
+header.ra-header .nav{display:flex;flex-wrap:nowrap;align-items:center;justify-content:space-between;gap:24px;padding:14px 0}
 header.ra-header .brand{display:flex;gap:12px;align-items:center;min-width:0}
 header.ra-header .brand img{height:72px;width:72px;object-fit:contain;border-radius:16px;background:#fff;box-shadow:0 8px 24px rgba(0,0,0,.06);padding:7px}
 header.ra-header .brand-text{min-width:0}

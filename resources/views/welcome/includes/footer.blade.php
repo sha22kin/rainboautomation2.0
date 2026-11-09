@@ -17,6 +17,12 @@
 <a href="{{pageLink('services')}}">Services</a>
 <a href="{{pageLink('training')}}">Training Academy</a>
 <a href="{{pageLink('contact')}}">Contact</a>
+@if(auth('student')->check())
+<a href="{{route('student.profile')}}">My Student Profile</a>
+@else
+<a href="{{route('student.login')}}">Student Login</a>
+<a href="{{route('student.register')}}">Student Register</a>
+@endif
 </div>
 <div class="col-6 col-xl footer-col">
 <h4>Business Segments</h4>
@@ -24,6 +30,7 @@
 <span>e-GP &amp; Tender Projects</span>
 <span>Solar System Solution</span>
 <span>Skill Development Training</span>
+<a href="{{route('certificates.find')}}">Find Certificate</a>
 </div>
 <div class="col-12 col-md-6 col-xl footer-col">
 <h4>Featured Programs</h4>

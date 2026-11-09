@@ -21,7 +21,8 @@ class RedirectIfAuthenticated
 
         foreach ($guards as $guard) {
             if (Auth::guard($guard)->check()) {
-                return redirect(RouteServiceProvider::HOME);
+                // A signed in student goes to the student profile, never to the CMS
+                return redirect($guard === 'student' ? route('student.profile') : RouteServiceProvider::HOME);
             }
         }
 

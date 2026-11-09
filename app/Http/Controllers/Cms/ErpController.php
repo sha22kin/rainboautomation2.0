@@ -63,7 +63,7 @@ class ErpController extends Controller
             'gross' => Erp::gross(),
             'costs' => Erp::costs(),
             'totalDue' => $students->sum(fn ($s) => $s->due()),
-            'studentCount' => $students->count(),
+            'studentCount' => $students->unique(fn ($s) => $s->student_no ?: $s->id)->count(),
             'batches' => Batch::orderBy('id')->get(),
             'inquiries' => Erp::inquiries(),
             'courseCount' => Erp::courses()->count(),
@@ -79,11 +79,11 @@ class ErpController extends Controller
             'inquiries' => Erp::inquiries(),
             'courses' => Erp::courses(),
             'categories' => Erp::categories(),
-            'students' => Student::with('payments', 'batch')->orderBy('id')->get(),
+            'students' => Student::with('payments', 'batch')->orderByRaw('coalesce(student_no, id)')->orderBy('id')->get(),
             'batches' => Batch::with('trainer')->orderBy('id')->get(),
             'trainers' => Trainer::orderBy('id')->get(),
             'attendance' => Attendance::with('student', 'batch')->orderBy('id')->get(),
-            'fees' => Payment::with('student')->orderBy('id')->get(),
+            'fees' => Payment::with('student.payments')->orderBy('id')->get(),
             'expenses' => Expense::orderBy('id')->get(),
             'labs' => Lab::orderBy('id')->get(),
             'certificates' => Certificate::with('student')->orderBy('id')->get(),
@@ -106,7 +106,7 @@ class ErpController extends Controller
                 'gross' => Erp::gross(),
                 'costs' => Erp::costs(),
                 'totalDue' => Erp::totalDue(),
-                'studentCount' => Student::count(),
+                'studentCount' => Student::distinct()->count('student_no'),
                 'paymentCount' => Payment::count(),
                 'expenseCount' => Expense::count(),
             ];
@@ -289,7 +289,7 @@ class ErpController extends Controller
             'costs' => Erp::costs(),
             'debts' => $debts,
             'enrollments' => $enrollments,
-            'studentCount' => $students->count(),
+            'studentCount' => $students->unique(fn ($s) => $s->student_no ?: $s->id)->count(),
             'reports' => ErpReports::LIST,
             'from' => $this->reportDate('from'),
             'to' => $this->reportDate('to'),
@@ -391,7 +391,7 @@ class ErpController extends Controller
             'batch' => ['course' => ['required', Rule::in($courseIds)], 'trainer' => 'required|exists:erp_trainers,id', 'start' => 'required|date', 'time' => 'required|max:10', 'days' => 'required|max:100', 'room' => 'required|max:150', 'capacity' => 'required|integer|min:0', 'status' => 'required|in:Upcoming,Ongoing,Completed'],
             'trainer' => ['name' => 'required|max:150', 'specialty' => 'required|max:150', 'phone' => 'required|max:30', 'rate' => 'required|numeric|min:0'],
             'attendance' => ['student' => 'required|exists:erp_students,id', 'batch' => 'required|exists:erp_batches,id', 'date' => 'required|date', 'status' => 'required|in:Present,Absent'],
-            'payment' => ['student' => 'required|exists:erp_students,id', 'amount' => 'required|numeric|gt:0', 'date' => 'required|date', 'method' => ['required', Rule::in(self::PAYMENT_METHODS)]],
+            'payment' => ['student' => 'required|exists:erp_students,id', 'course' => ['nullable', Rule::in($courseIds)],'amount' => 'required|numeric|gt:0', 'date' => 'required|date', 'method' => ['required', Rule::in(self::PAYMENT_METHODS)]],
             'expense' => ['category' => ['required', Rule::in(self::EXPENSE_CATEGORIES)], 'description' => 'required|max:255', 'amount' => 'required|numeric|gt:0', 'date' => 'required|date'],
             'lab' => ['name' => 'required|max:150', 'equipment' => 'required', 'status' => 'required|in:Available,Maintenance,Unavailable'],
             'certificate' => ['student' => 'required|exists:erp_students,id', 'course' => ['required', Rule::in($courseIds)], 'issued' => 'required|date', 'grade' => ['required', Rule::in(Certificate::GRADES)], 'gpa' => 'nullable|numeric|min:0|max:5', 'cgpa' => 'nullable|numeric|min:0|max:5'],
@@ -440,21 +440,51 @@ class ErpController extends Controller
                 $record->editedby_id = Auth::id();
                 break;
             case 'student':
+                // A new course for an existing student ("Add Course", or the same mobile number) stays under that
+                // student's ID; a course record without a course (website registration) is filled instead of adding one
+                if(!$record->exists){
+                    $existing = Student::find((int) $r->input('from')) ?: Student::byPhone($v['phone']);
+                    if($existing){
+                        $record->student_no = $existing->student_no ?: $existing->id;
+                        $record->account_id = $existing->account_id;
+                        $record = Student::where('student_no', $record->student_no)->whereNull('course_id')->first() ?: $record;
+                    }
+                }
+                // One student is enrolled in a course once
+                $sameCourse = $record->personCourses()->filter(fn ($courseId, $id) => $courseId == $v['course'] && $id != $record->id);
+                if($sameCourse->isNotEmpty()){
+                    return back()->with('toast', 'This student is already enrolled in that course ('.Student::find($sameCourse->keys()->first())->code.')');
+                }
                 // The agreed fee is the course fee at admission; it follows a course change only
                 if(!$record->exists || $record->course_id != $v['course']){
                     $record->fee = Erp::courseFee(Erp::course($v['course']));
                 }
                 $record->fill(['name' => $v['name'], 'phone' => $v['phone'], 'course_id' => $v['course'], 'batch_id' => $v['batch'] ?? null]);
                 $record->admitted_on ??= now()->toDateString();
+                // Same mobile number as a website student account: the course shows on that student's profile
+                if(!$record->account_id){
+                    $record->account_id = \App\Models\StudentAccount::where('phone_key', \App\Models\StudentAccount::phoneKey($v['phone']))->value('id');
+                }
                 break;
             case 'batch':
                 $record->fill(['course_id' => $v['course'], 'trainer_id' => $v['trainer']] + collect($v)->except('course', 'trainer')->all());
                 break;
             case 'attendance':
+                // The student's course record in that batch
+                $chosen = Student::find($v['student']);
+                $v['student'] = Student::where('student_no', $chosen->student_no ?: $chosen->id)->where('batch_id', $v['batch'])->value('id') ?: $chosen->id;
                 $record->fill(['student_id' => $v['student'], 'batch_id' => $v['batch'], 'date' => $v['date'], 'status' => $v['status']]);
                 break;
             case 'payment':
-                $record->fill(['student_id' => $v['student']] + collect($v)->except('student')->all());
+                // The payment goes to the chosen course of the student
+                if(!empty($v['course'])){
+                    $enrolment = Student::findOrFail($v['student'])->personCourses()->search(fn ($courseId) => $courseId == $v['course']);
+                    if($enrolment === false){
+                        return back()->with('toast', 'This student is not enrolled in that course');
+                    }
+                    $v['student'] = $enrolment;
+                }
+                $record->fill(['student_id' => $v['student']] + collect($v)->except('student', 'course')->all());
                 $record->addedby_id ??= Auth::id();
                 break;
             case 'expense':
@@ -462,6 +492,13 @@ class ErpController extends Controller
                 $record->addedby_id ??= Auth::id();
                 break;
             case 'certificate':
+                // Only a course the student is enrolled in; the certificate goes to the record of that course
+                $courses = Student::findOrFail($v['student'])->personCourses();
+                $enrolment = $courses->search(fn ($courseId) => $courseId == $v['course']);
+                if($enrolment === false){
+                    return back()->with('toast', 'This student is not enrolled in that course');
+                }
+                $v['student'] = $enrolment;
                 $record->fill(['student_id' => $v['student'], 'course_id' => $v['course'], 'issued' => $v['issued'], 'grade' => $v['grade'], 'gpa' => filled($v['gpa'] ?? null) ? $v['gpa'] : null, 'cgpa' => filled($v['cgpa'] ?? null) ? $v['cgpa'] : null]);
                 break;
             default:
@@ -528,10 +565,32 @@ class ErpController extends Controller
     }
 
     // Select options of the add / edit forms (design: courseOpts, studentOpts, batchOpts, trainerOpts)
+    // Certificate form: student record id => course ids that person is enrolled in
+    private function studentCourses(){
+        $students = Student::get(['id', 'student_no', 'course_id']);
+        $byPerson = $students->whereNotNull('course_id')->groupBy(fn ($s) => $s->personKey())->map(fn ($list) => $list->pluck('course_id')->unique()->values());
+        return $students->mapWithKeys(fn ($s) => [$s->id => $byPerson->get($s->personKey(), collect())->all()])->all();
+    }
+
+    // Course record id => first record id of the same student (the student's entry in the Student lists)
+    private function studentMain(){
+        $main = [];
+        foreach(Student::get(['id', 'student_no'])->groupBy(fn ($s) => $s->student_no ?: $s->id) as $list){
+            foreach($list as $s){
+                $main[$s->id] = $list->min('id');
+            }
+        }
+        return $main;
+    }
+
     private function formData(){
         return [
             'courseOpts' => Erp::courses()->map(fn ($c) => [$c->id, $c->course('title')])->all(),
-            'studentOpts' => Student::orderBy('id')->get()->map(fn ($s) => [$s->id, $s->name.' — '.$s->code])->all(),
+            // One entry per student (name — Student ID); the course is chosen in the form's own Course list
+            'studentOpts' => Student::orderByRaw('coalesce(student_no, id)')->orderBy('id')->get()->unique(fn ($s) => $s->student_no ?: $s->id)->map(fn ($s) => [$s->id, $s->name.' — '.$s->code])->values()->all(),
+            'studentCourses' => $this->studentCourses(),
+            // Course record id => the student's entry in the Student lists (Edit of payments, attendance, certificates)
+            'studentMain' => $this->studentMain(),
             'batchOpts' => Batch::orderBy('id')->get()->map(fn ($b) => [$b->id, $b->code.' — '.Erp::courseName($b->course_id)])->all(),
             'trainerOpts' => Trainer::orderBy('id')->get()->map(fn ($t) => [$t->id, $t->name])->all(),
             'labOpts' => Lab::orderBy('id')->pluck('name')->map(fn ($n) => [$n, $n])->all(),
