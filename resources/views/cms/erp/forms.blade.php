@@ -3,8 +3,7 @@
     $field = function($name, $label, $type = 'text', $options = null, $required = true){
         $req = $required ? 'required' : '';
         if($options !== null){
-            // Long texts (course titles) are shortened so the opened list stays inside the pop-up; the full text shows on hover
-            $control = '<select name="'.e($name).'" '.$req.'>'.collect($options)->map(fn ($o) => '<option value="'.e($o[0]).'"'.(mb_strlen($o[1]) > 40 ? ' title="'.e($o[1]).'"' : '').'>'.e(\Illuminate\Support\Str::limit($o[1], 40, '…')).'</option>')->implode('').'</select>';
+            $control = '<select name="'.e($name).'" '.$req.'>'.collect($options)->map(fn ($o) => '<option value="'.e($o[0]).'">'.e($o[1]).'</option>')->implode('').'</select>';
         }else{
             $control = '<input name="'.e($name).'" type="'.e($type).'" '.$req.($type == 'number' ? ' step="any" min="0"' : '').'>';
         }
@@ -102,3 +101,4 @@ function addStudentCourse(id, record) {
     form.elements.batch.value = '';
 }
 </script>
+@include('cms.erp.partials.select')
