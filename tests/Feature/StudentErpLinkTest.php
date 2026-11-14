@@ -23,12 +23,18 @@ class StudentErpLinkTest extends TestCase
         Http::fake(['translate.googleapis.com/*' => Http::response([[['অনুবাদ', 'x']]], 200)]);
     }
 
-    private function register(array $data = [])
+    // Registers, then the admin approves (ERP → Registered Students) unless $approve is false
+    private function register(array $data = [], $approve = true)
     {
-        return $this->post('/student/register', $data + [
+        $response = $this->post('/student/register', $data + [
             'name' => 'Erp Link Student', 'email' => 'erp-link@example.com', 'phone' => '01755500011',
             'password' => 'secret123', 'password_confirmation' => 'secret123', 'agree' => '1',
+            'profession' => 'Student', 'preferred_course_id' => trainingCourses()->first()->id,
         ]);
+        if($approve && ($account = StudentAccount::where('email', strtolower(trim($data['email'] ?? 'erp-link@example.com')))->whereNull('approved_at')->first())){
+            $account->approve();
+        }
+        return $response;
     }
 
     private function account(): StudentAccount
@@ -49,7 +55,7 @@ class StudentErpLinkTest extends TestCase
 
     public function test_register_page_has_no_course_choice(): void
     {
-        $this->get('/student/register')->assertOk()->assertDontSee('name="course"', false)->assertDontSee('I will choose a course later');
+        $this->get('/student/register')->assertOk()->assertDontSee('name="course"', false)->assertSee('name="preferred_course_id"', false)->assertDontSee('I will choose a course later');
     }
 
     public function test_registering_without_a_course_still_adds_the_student_to_the_erp(): void

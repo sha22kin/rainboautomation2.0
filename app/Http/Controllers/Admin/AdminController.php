@@ -500,7 +500,7 @@ class AdminController extends Controller
         'image' => 'nullable|image|mimes:jpeg,png,jpg,gif,webp|max:2048',
         'image_url' => 'nullable|url|max:500',
         'alt' => 'nullable|max:191',
-        'modules' => 'nullable|max:3000',
+        'modules' => 'nullable|max:7000',
       ]);
 
       $data =$course->course();
@@ -1018,7 +1018,7 @@ class AdminController extends Controller
 
   // Students registered on the website (footer → Student Register), with their linked ERP course records
   public function studentAccounts(Request $r){
-    $accounts =\App\Models\StudentAccount::withCount('enrollments')
+    $accounts =\App\Models\StudentAccount::with('preferredCourse')->withCount('enrollments')
       ->when($r->search,function($q) use($r){
         $q->where(function($qq) use($r){
           $qq->where('name','LIKE','%'.$r->search.'%')->orWhere('email','LIKE','%'.$r->search.'%')->orWhere('phone','LIKE','%'.$r->search.'%');
@@ -1027,14 +1027,32 @@ class AdminController extends Controller
       ->when($r->filter=='unlinked',fn($q)=>$q->doesntHave('enrollments'))
       ->when($r->filter=='linked',fn($q)=>$q->has('enrollments'))
       ->when($r->filter=='blocked',fn($q)=>$q->where('status',0))
-      ->latest('id')->paginate(25)->appends($r->only(['search','filter']));
+      ->when($r->filter=='pending',fn($q)=>$q->whereNull('approved_at'))
+      ->orderByRaw('approved_at is null desc')->latest('id')->paginate(25)->appends($r->only(['search','filter']));
 
     $totals =(object)[
       'all'=>\App\Models\StudentAccount::count(),
       'unlinked'=>\App\Models\StudentAccount::doesntHave('enrollments')->count(),
       'blocked'=>\App\Models\StudentAccount::where('status',0)->count(),
+      'pending'=>\App\Models\StudentAccount::whereNull('approved_at')->count(),
     ];
     return view(adminTheme().'studentAccounts.studentAccounts',compact('accounts','totals'));
+  }
+
+  // One registered student: registration details, ERP course records, payments, attendance and certificates
+  public function studentAccountsView($id){
+    $account =\App\Models\StudentAccount::with('preferredCourse')->find($id);
+    if(!$account){
+      Session()->flash('error','This Student Account Is Not Found');
+      return redirect()->route('admin.studentAccounts');
+    }
+    $enrollments =$account->enrollments()->with(['course','batch','payments'])->orderBy('id')->get();
+    $ids =$enrollments->pluck('id');
+    $payments =\App\Models\Erp\Payment::whereIn('student_id',$ids)->latest('date')->latest('id')->get();
+    $certificates =\App\Models\Erp\Certificate::with('course')->whereIn('student_id',$ids)->latest('issued')->get();
+    $attendance =\App\Models\Erp\Attendance::whereIn('student_id',$ids)->get()->groupBy('student_id');
+    $suggestions =$account->suggestedEnrollments();
+    return view(adminTheme().'studentAccounts.studentAccountsView',compact('account','enrollments','payments','certificates','attendance','suggestions'));
   }
 
   // link / unlink an ERP student record, block / unblock, delete (POST only)
@@ -1045,7 +1063,13 @@ class AdminController extends Controller
       return redirect()->route('admin.studentAccounts');
     }
 
-    if($action=='link'){
+    if($action=='approve'){
+      // The student can log in, and becomes an ERP student (profile is made)
+      if(!$account->isApproved()){
+        $account->approve();
+      }
+      Session()->flash('success',$account->name.' Approved! The student can log in now.');
+    }elseif($action=='link'){
       $r->validate(['student' => 'required|integer']);
       $student =\App\Models\Erp\Student::whereNull('account_id')->find($r->student);
       if(!$student){
@@ -1073,6 +1097,7 @@ class AdminController extends Controller
       $account->enrollments()->update(['account_id'=>null]);
       $account->delete();
       Session()->flash('success','Student Account Deleted!');
+      return redirect()->route('admin.studentAccounts');
     }else{
       abort(404);
     }

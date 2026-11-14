@@ -17,9 +17,37 @@ class StudentAccount extends Authenticatable
     }
 
     protected $table = 'student_accounts';
-    protected $fillable = ['name', 'email', 'phone', 'phone_key', 'password'];
+    protected $fillable = ['name', 'email', 'phone', 'phone_key', 'password', 'dob', 'profession', 'organization', 'education', 'preferred_course_id', 'training_mode', 'training_location', 'address'];
     protected $hidden = ['password', 'remember_token'];
-    protected $casts = ['password' => 'hashed', 'last_login_at' => 'datetime', 'status' => 'boolean'];
+    protected $casts = ['password' => 'hashed', 'last_login_at' => 'datetime', 'status' => 'boolean', 'dob' => 'date', 'approved_at' => 'datetime'];
+
+    // Choices of the registration form (design: desing/Student_Portal.html)
+    const PROFESSIONS = ['Student', 'Engineer', 'Technician', 'Teacher / Instructor', 'Industry Professional', 'Business Owner', 'Other'];
+    const EDUCATIONS = ['SSC / Equivalent', 'HSC / Equivalent', 'Diploma in Engineering', 'BSc in Engineering', 'Postgraduate', 'Other'];
+    const TRAINING_MODES = ['On-Campus / Practical Lab', 'Corporate / Group Training', 'Contact Me to Discuss'];
+    const TRAINING_LOCATIONS = ['Panthapath, Dhaka', 'Mirpur, Dhaka', 'Other / Contact Me'];
+
+    // Website registrations wait for the admin (ERP → Registered Students)
+    public function isApproved(){
+        return $this->approved_at !== null;
+    }
+
+    // Admin approval: the student can log in, and becomes an ERP student (ERP → Student Admissions), linked to
+    // the account, without a course yet: the office adds the course in the ERP. Course records the office already
+    // has for this mobile number are not linked here; the admin links them on Registered Students.
+    public function approve(){
+        \Illuminate\Support\Facades\DB::transaction(function () {
+            $this->forceFill(['approved_at' => now()])->save();
+            if(!$this->enrollments()->exists()){
+                Student::create(['account_id' => $this->id, 'name' => $this->name, 'phone' => $this->phone, 'course_id' => null, 'fee' => 0]);
+            }
+        });
+    }
+
+    // The course chosen at registration (a wish; the office enrolls the student in the ERP)
+    public function preferredCourse(){
+        return $this->belongsTo(PostExtra::class, 'preferred_course_id')->where('type', 4);
+    }
 
     // Digits of a Bangladeshi mobile number, last 11 (01XXXXXXXXX), used to compare numbers written differently
     public static function phoneKey($phone){

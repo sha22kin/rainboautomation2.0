@@ -395,7 +395,7 @@ class ErpController extends Controller
             'expense' => ['category' => ['required', Rule::in(self::EXPENSE_CATEGORIES)], 'description' => 'required|max:255', 'amount' => 'required|numeric|gt:0', 'date' => 'required|date'],
             'lab' => ['name' => 'required|max:150', 'equipment' => 'required', 'status' => 'required|in:Available,Maintenance,Unavailable'],
             'certificate' => ['student' => 'required|exists:erp_students,id', 'course' => ['required', Rule::in($courseIds)], 'issued' => 'required|date', 'grade' => ['required', Rule::in(Certificate::GRADES)], 'gpa' => 'nullable|numeric|min:0|max:5', 'cgpa' => 'nullable|numeric|min:0|max:5'],
-            'course' => ['title' => 'required|max:191', 'category' => ['required', Rule::in(array_keys(trainingCategories()))], 'duration' => 'nullable|max:50', 'fee' => 'nullable|integer|min:0|max:100000000', 'description' => 'nullable|max:1000', 'modules' => 'nullable|max:3000', 'image' => 'nullable|image|mimes:jpeg,png,jpg,gif,webp|max:2048', 'alt' => 'nullable|max:191'],
+            'course' => ['title' => 'required|max:191', 'category' => ['required', Rule::in(array_keys(trainingCategories()))], 'duration' => 'nullable|max:50', 'fee' => 'nullable|integer|min:0|max:100000000', 'description' => 'nullable|max:1000', 'modules' => 'nullable|max:7000', 'image' => 'nullable|image|mimes:jpeg,png,jpg,gif,webp|max:2048', 'alt' => 'nullable|max:191'],
         };
         $validator = validator($r->all(), $rules, ['amount.gt' => 'Amount must be greater than zero']);
         if($validator->fails()){

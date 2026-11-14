@@ -137,3 +137,7 @@ body:not(.ws) .modal.wide{width:min(920px,100%)}
 .catbar{gap:5px}
 .modal{padding:16px}
 }
+
+/* ERP sidebar: number of website registrations waiting for approval */
+.navbtn:has(.navcount){position:relative}
+.navbtn .navcount{position:absolute;left:14px;top:1px;min-width:16px;height:16px;padding:0 4px;border-radius:8px;background:#e5484d;color:#fff;font-size:10px;font-weight:800;line-height:16px;text-align:center;box-shadow:0 0 0 2px #142640}

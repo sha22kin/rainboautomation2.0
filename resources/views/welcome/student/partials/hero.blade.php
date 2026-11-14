@@ -1,4 +1,4 @@
-{{-- Profile banner: photo, name, registration number, contact; $account, $actions = 'profile' or 'edit' --}}
+{{-- Profile banner: photo, name, registration number, contact; $account, $actions = 'profile', 'edit' or 'pending' --}}
 <div class="sp-hero">
     <div class="sp-cover"></div>
     <div class="sp-hero-body">
@@ -19,7 +19,9 @@
             </div>
         </div>
         <div class="sp-actions">
-            @if($actions == 'profile')
+            @if($actions == 'pending')
+            {{-- Waiting for approval: nothing to edit yet --}}
+            @elseif($actions == 'profile')
             <a class="sp-btn sp-btn-primary" href="{{route('student.profile.edit')}}"><i class="fa-solid fa-user-pen"></i> Edit Profile</a>
             @else
             <a class="sp-btn sp-btn-light" href="{{route('student.profile')}}"><i class="fa-solid fa-arrow-left"></i> Back to Profile</a>

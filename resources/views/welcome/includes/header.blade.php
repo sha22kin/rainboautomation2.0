@@ -22,7 +22,7 @@
 </div>
 </a>
 @include('welcome.includes.navLinks', ['navId' => 'navLinks', 'navClass' => 'ra-nav-five d-none d-xl-flex'])<button aria-label="Switch between Bangla and English" class="ra-language-switch d-none d-xl-inline-flex" id="ra-language-switch" title="Switch language" type="button">বাংলা</button>
-<a class="btn btn-primary d-none d-xl-inline-flex" href="{{pageLink('contact')}}">Request Consultation ↗</a>
+<a class="btn btn-primary d-none d-xl-inline-flex" href="{{route('student.login')}}">Student Portal ↗</a>
 <button aria-controls="raSidebar" aria-expanded="false" aria-label="Open menu" class="menu-btn d-block d-xl-none" id="menuBtn" type="button">☰</button>
 </div>
 </header>
@@ -41,6 +41,6 @@
 <span>Language</span>
 <button aria-label="Switch between Bangla and English" class="ra-language-switch" title="Switch language" type="button">বাংলা</button>
 </div>
-<a class="ra-sidebar-cta" href="{{pageLink('contact')}}">Request Consultation ↗</a>
+<a class="ra-sidebar-cta" href="{{route('student.login')}}">Student Portal ↗</a>
 </div>
 </aside>

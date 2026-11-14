@@ -89,7 +89,7 @@
                                 </div>
                                 <div class="form-group mb-0">
                                     <label for="modules">Course Modules <small style="color:#999;">(one per line – shown in Details)</small></label>
-                                    <textarea class="form-control {{$errors->has('modules')?'error':''}}" id="modules" name="modules" rows="6" placeholder="PLC hardware, architecture and electrical safety&#10;Digital I/O wiring, sensors and actuators">{{old('modules', implode("\n", $data['modules']))}}</textarea>
+                                    <textarea class="form-control {{$errors->has('modules')?'error':''}}" id="modules" name="modules" rows="6" maxlength="7000" placeholder="PLC hardware, architecture and electrical safety&#10;Digital I/O wiring, sensors and actuators">{{old('modules', implode("\n", $data['modules']))}}</textarea>
                                     @if ($errors->has('modules'))
                                     <p style="color: red; margin: 0; font-size: 10px;">{{ $errors->first('modules') }}</p>
                                     @endif

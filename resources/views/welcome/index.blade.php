@@ -137,6 +137,7 @@
 </div>
 </div>
 </section>
+@include('welcome.includes.homeStudentPortal')
 <section>
 @php $why = homeWhyContent(); @endphp
 <div class="wrap">

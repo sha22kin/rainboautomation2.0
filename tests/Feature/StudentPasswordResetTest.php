@@ -22,7 +22,7 @@ class StudentPasswordResetTest extends TestCase
         parent::setUp();
         Http::fake(['translate.googleapis.com/*' => Http::response([[['অনুবাদ', 'x']]], 200)]);
         Notification::fake();
-        $this->account = StudentAccount::create(['name' => 'Reset Test Student', 'email' => 'reset-test@example.com', 'phone' => '01712340077', 'phone_key' => '01712340077', 'password' => 'secret123'])->refresh();
+        $this->account = tap(StudentAccount::create(['name' => 'Reset Test Student', 'email' => 'reset-test@example.com', 'phone' => '01712340077', 'phone_key' => '01712340077', 'password' => 'secret123']), fn ($a) => $a->forceFill(['approved_at' => now()])->save())->refresh();
     }
 
     private function token(): string

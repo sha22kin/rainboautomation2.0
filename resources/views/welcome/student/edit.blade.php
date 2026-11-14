@@ -67,6 +67,30 @@
                         @error('phone_key')<div class="err">{{$message}}</div>@enderror
                     </div>
                 </div>
+                @php
+                    $pick = function ($name, $options, $placeholder) use ($account) {
+                        $value = (string) old($name, $account->$name);
+                        return '<option value="">'.e($placeholder).'</option>'.collect($options)->map(fn ($label, $key) => '<option value="'.e($key).'"'.($value === (string) $key ? ' selected' : '').'>'.e($label).'</option>')->implode('');
+                    };
+                    $list = fn ($values) => array_combine($values, $values);
+                    $detail = fn ($name, $label, $control) => '<div class="sp-field '.($errors->has($name) ? 'has-err' : '').'"><label for="'.$name.'">'.e($label).'</label>'.$control.($errors->has($name) ? '<div class="err">'.e($errors->first($name)).'</div>' : '').'</div>';
+                @endphp
+                <div class="sp-row2">
+                    {!! $detail('dob', 'Date of birth', '<input type="date" id="dob" name="dob" value="'.e(old('dob', $account->dob?->toDateString())).'" max="'.now()->subDay()->toDateString().'">') !!}
+                    {!! $detail('profession', 'Profession', '<select id="profession" name="profession">'.$pick('profession', $list(App\Models\StudentAccount::PROFESSIONS), 'Select profession').'</select>') !!}
+                </div>
+                <div class="sp-row2">
+                    {!! $detail('organization', 'Institute / Company', '<input type="text" id="organization" name="organization" value="'.e(old('organization', $account->organization)).'" maxlength="150" placeholder="University, college or employer">') !!}
+                    {!! $detail('education', 'Highest education', '<select id="education" name="education">'.$pick('education', $list(App\Models\StudentAccount::EDUCATIONS), 'Select qualification').'</select>') !!}
+                </div>
+                <div class="sp-row2">
+                    {!! $detail('preferred_course_id', 'Preferred training course', '<select id="preferred_course_id" name="preferred_course_id">'.$pick('preferred_course_id', trainingCourses()->mapWithKeys(fn ($c) => [$c->id => $c->course('title') ?: $c->name])->all(), 'Select training course').'</select>') !!}
+                    {!! $detail('training_mode', 'Training preference', '<select id="training_mode" name="training_mode">'.$pick('training_mode', $list(App\Models\StudentAccount::TRAINING_MODES), 'Select preference').'</select>') !!}
+                </div>
+                <div class="sp-row2">
+                    {!! $detail('training_location', 'Preferred training location', '<select id="training_location" name="training_location">'.$pick('training_location', $list(App\Models\StudentAccount::TRAINING_LOCATIONS), 'Select location').'</select>') !!}
+                    {!! $detail('address', 'Present address', '<input type="text" id="address" name="address" value="'.e(old('address', $account->address)).'" maxlength="255" placeholder="City / District / Full address">') !!}
+                </div>
                 <div class="sp-field {{$errors->has('current_password') && !$passwordForm ? 'has-err' : ''}}" id="emailPassword" style="{{old('email', $account->email) == $account->email ? 'display:none' : ''}}">
                     <label for="profile_current_password">Current password <span class="req">*</span></label>
                     <input type="password" id="profile_current_password" name="current_password" maxlength="100" autocomplete="current-password">

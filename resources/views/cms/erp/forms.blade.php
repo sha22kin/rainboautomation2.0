@@ -28,7 +28,7 @@
             .'<div class="field"><label>Colour</label><input name="color" type="color" value="#287dcc" required></div>',
         'course' => str_replace('class="field"', 'class="field full"', $field('title', 'Course / Program Title')).$field('category', 'Category', 'text', $categoryOpts).$field('duration', 'Duration (e.g. 30 Hours)', 'text', null, false).$field('fee', 'Fee (BDT, empty = On Inquiry)', 'number', null, false)
             .'<div class="field full"><label>Short Description</label><textarea name="description" rows="2" maxlength="1000"></textarea></div>'
-            .'<div class="field full"><label>Course Modules (one per line)</label><textarea name="modules" rows="4" maxlength="3000"></textarea></div>'
+            .'<div class="field full"><label>Course Modules (one per line)</label><textarea name="modules" rows="6" maxlength="7000"></textarea></div>'
             .'<div class="field"><label>Course Image (empty = keep current)</label><input name="image" type="file" accept="image/*"></div>'.$field('alt', 'Image Alt Text', 'text', null, false),
         'certificate' => $field('student', 'Student', 'text', $studentOpts).str_replace('<select name="course" required>', '<select name="course" required data-cert-course>', $field('course', 'Course', 'text', array_merge([['', 'No course for this student']], $courseOpts))).$field('issued', 'Issue Date', 'date').$field('grade', 'Result / Grade', 'text', $opts(...App\Models\Erp\Certificate::GRADES))
             .str_replace('min="0"', 'min="0" max="5" step="0.01" placeholder="Optional, e.g. 3.75"', $field('gpa', 'GPA Point (optional)', 'number', null, false))

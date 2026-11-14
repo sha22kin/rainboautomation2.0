@@ -14,6 +14,7 @@ use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Password as PasswordBroker;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\Str;
+use Illuminate\Validation\Rule;
 use Illuminate\Validation\Rules\Password;
 
 // Website student accounts: register, login, profile with courses and certificates.
@@ -25,6 +26,36 @@ class StudentPortalController extends Controller
 
     public function showRegister(){
         return view('welcome.student.register');
+    }
+
+    // Registration details of the design form. Registering: profession and course are required (course only
+    // when the website has courses); editing the profile: all optional, so older accounts can still save.
+    private function detailRules($registering){
+        $courseIds = trainingCourses()->pluck('id')->all();
+        $need = $registering ? 'required' : 'nullable';
+        return [
+            'dob' => 'nullable|date|after:1940-01-01|before:today',
+            'profession' => [$need, Rule::in(StudentAccount::PROFESSIONS)],
+            'organization' => 'nullable|string|max:150',
+            'education' => ['nullable', Rule::in(StudentAccount::EDUCATIONS)],
+            'preferred_course_id' => [$registering && $courseIds ? 'required' : 'nullable', Rule::in($courseIds)],
+            'training_mode' => ['nullable', Rule::in(StudentAccount::TRAINING_MODES)],
+            'training_location' => ['nullable', Rule::in(StudentAccount::TRAINING_LOCATIONS)],
+            'address' => 'nullable|string|max:255',
+        ];
+    }
+
+    private const DETAIL_MESSAGES = [
+        'profession.required' => 'Please select your profession.',
+        'preferred_course_id.required' => 'Please select a preferred training course.',
+        'preferred_course_id.in' => 'Please select a training course from the list.',
+        'dob.before' => 'Please enter a valid date of birth.',
+        'dob.after' => 'Please enter a valid date of birth.',
+    ];
+
+    private function details(Request $r){
+        $data = $r->only(['dob', 'profession', 'organization', 'education', 'preferred_course_id', 'training_mode', 'training_location', 'address']);
+        return array_map(fn ($v) => is_string($v) && trim($v) === '' ? null : (is_string($v) ? trim($v) : $v), $data);
     }
 
     public function register(Request $r){
@@ -49,7 +80,7 @@ class StudentPortalController extends Controller
             'phone_key' => 'unique:student_accounts,phone_key',
             'password' => ['required', 'confirmed', Password::min(8)->letters()->numbers()],
             'agree' => 'accepted',
-        ], [
+        ] + $this->detailRules(true), self::DETAIL_MESSAGES + [
             'name.regex' => 'Please write your name with letters only.',
             'phone.regex' => 'Please enter a valid Bangladeshi mobile number, e.g. 01X-XXXXXXXX.',
             'email.unique' => 'An account with this email already exists. Please log in instead.',
@@ -64,29 +95,15 @@ class StudentPortalController extends Controller
                 'phone' => trim($r->phone),
                 'phone_key' => $r->phone_key,
                 'password' => $r->password,
-            ]);
-            $this->addToErp($account);
+            ] + $this->details($r));
             return $account;
         });
         RateLimiter::hit($key, 3600);
 
-        // Registration done: the student logs in with the new account, which opens the profile
+        // Registration done: the account waits for the admin (ERP → Registered Students); the student can log in once approved
         return redirect()->route('student.login')
             ->withInput(['email' => $account->email])
-            ->with('success', 'Registration successful! Your student account has been created. Please log in.');
-    }
-
-    // Every new account becomes an ERP student (ERP → Students), linked to the account, without a course yet:
-    // the office adds the course in the ERP. Course records the office already has for this mobile number
-    // are not linked here; the admin confirms them (Registered Students).
-    private function addToErp(StudentAccount $account){
-        Student::create([
-            'account_id' => $account->id,
-            'name' => $account->name,
-            'phone' => $account->phone,
-            'course_id' => null,
-            'fee' => 0,
-        ]);
+            ->with('success', 'Registration successful! Please log in. Your account will be ready once Rainbow Automation approves your registration.');
     }
 
     public function showLogin(){
@@ -114,7 +131,6 @@ class StudentPortalController extends Controller
         if(!$account->status){
             return back()->withInput($r->only('email'))->with('error', 'This account is blocked. Please contact Rainbow Automation.');
         }
-
         RateLimiter::clear($key);
         Auth::guard('student')->login($account, $r->boolean('remember'));
         $r->session()->regenerate();
@@ -184,6 +200,10 @@ class StudentPortalController extends Controller
         if(!$account){
             return redirect()->route('student.login')->with('error', 'This account is blocked. Please contact Rainbow Automation.');
         }
+        // Not approved yet: the profile only says to wait for the admin
+        if(!$account->isApproved()){
+            return view('welcome.student.pending', compact('account'));
+        }
 
         $enrollments = $account->enrollments()->whereNotNull('course_id')->with(['course', 'batch', 'payments'])->latest('admitted_on')->get();
         $certificates = $account->certificates()->with('course')->latest('issued')->get();
@@ -196,6 +216,9 @@ class StudentPortalController extends Controller
         if(!$account){
             return redirect()->route('student.login')->with('error', 'This account is blocked. Please contact Rainbow Automation.');
         }
+        if(!$account->isApproved()){
+            return redirect()->route('student.profile');
+        }
         return view('welcome.student.edit', compact('account'));
     }
 
@@ -203,6 +226,10 @@ class StudentPortalController extends Controller
     public function updateProfile(Request $r){
         $account = $this->account($r);
         abort_unless($account, 403);
+        // Profile changes open after the admin approves
+        if(!$account->isApproved()){
+            return redirect()->route('student.profile');
+        }
 
         $r->merge(['email' => Str::lower(trim((string) $r->email)), 'phone_key' => StudentAccount::phoneKey($r->phone)]);
         $emailChanged = $r->email !== $account->email;
@@ -213,7 +240,7 @@ class StudentPortalController extends Controller
             'phone_key' => 'unique:student_accounts,phone_key,'.$account->id,
             'photo' => 'nullable|image|mimes:jpeg,jpg,png,webp|max:2048|dimensions:min_width=100,min_height=100,max_width=6000,max_height=6000',
             'current_password' => $emailChanged ? 'required|current_password:student' : 'nullable',
-        ], [
+        ] + $this->detailRules(false), self::DETAIL_MESSAGES + [
             'name.regex' => 'Please write your name with letters only.',
             'email.unique' => 'Another account already uses this email.',
             'phone.regex' => 'Please enter a valid Bangladeshi mobile number, e.g. 01X-XXXXXXXX.',
@@ -223,7 +250,7 @@ class StudentPortalController extends Controller
             'current_password.current_password' => 'The current password is incorrect.',
         ]);
 
-        $account->fill(['name' => trim($r->name), 'email' => $r->email, 'phone' => trim($r->phone), 'phone_key' => $r->phone_key]);
+        $account->fill(['name' => trim($r->name), 'email' => $r->email, 'phone' => trim($r->phone), 'phone_key' => $r->phone_key] + $this->details($r));
         if($r->hasFile('photo')){
             $account->photo = $this->storePhoto($r->file('photo'), $account->photo);
         }
@@ -235,6 +262,10 @@ class StudentPortalController extends Controller
     public function removePhoto(Request $r){
         $account = $this->account($r);
         abort_unless($account, 403);
+        // Profile changes open after the admin approves
+        if(!$account->isApproved()){
+            return redirect()->route('student.profile');
+        }
         $this->deletePhoto($account->photo);
         $account->photo = null;
         $account->save();
@@ -244,6 +275,10 @@ class StudentPortalController extends Controller
     public function updatePassword(Request $r){
         $account = $this->account($r);
         abort_unless($account, 403);
+        // Profile changes open after the admin approves
+        if(!$account->isApproved()){
+            return redirect()->route('student.profile');
+        }
 
         $r->validate([
             'current_password' => 'required|current_password:student',

@@ -27,12 +27,18 @@ class StudentPortalTest extends TestCase
         Http::fake(['translate.googleapis.com/*' => Http::response([[['অনুবাদ', 'x']]], 200)]);
     }
 
-    private function register(array $data = [])
+    // Registers, then the admin approves (ERP → Registered Students) unless $approve is false
+    private function register(array $data = [], $approve = true)
     {
-        return $this->post('/student/register', $data + [
+        $response = $this->post('/student/register', $data + [
             'name' => 'Test Student Karim', 'email' => 'Test.Student@Example.com', 'phone' => '01712345699',
             'password' => 'secret123', 'password_confirmation' => 'secret123', 'agree' => '1',
+            'profession' => 'Student', 'preferred_course_id' => trainingCourses()->first()->id,
         ]);
+        if($approve && ($account = StudentAccount::where('email', strtolower(trim($data['email'] ?? 'Test.Student@Example.com')))->whereNull('approved_at')->first())){
+            $account->approve();
+        }
+        return $response;
     }
 
     private function registerAndLogin()
@@ -198,7 +204,8 @@ class StudentPortalTest extends TestCase
 
         $admin = $this->admin();
         $this->actingAs($admin);
-        $this->get('/admin/website/student-accounts')->assertOk()->assertSee('Test Student Karim')->assertSee($record->code);
+        $this->get('/admin/website/student-accounts')->assertOk()->assertSee('Test Student Karim');
+        $this->get('/admin/website/student-accounts/'.$account->id)->assertOk()->assertSee($record->code);
         $this->get('/admin/website/student-accounts/link/'.$account->id)->assertStatus(405);
 
         $this->post('/admin/website/student-accounts/link/'.$account->id, ['student' => $record->id]);

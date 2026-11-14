@@ -39,7 +39,7 @@ class ErpMultiCourseTest extends TestCase
     public function test_add_course_enrolls_the_same_student_in_another_course(): void
     {
         [$plc, $vfd] = Erp::courses()->values()->take(2)->all();
-        $account = StudentAccount::create(['name' => 'Multi Student', 'email' => 'multi-student@example.com', 'phone' => '01799900022', 'phone_key' => '01799900022', 'password' => 'secret123']);
+        $account = tap(StudentAccount::create(['name' => 'Multi Student', 'email' => 'multi-student@example.com', 'phone' => '01799900022', 'phone_key' => '01799900022', 'password' => 'secret123']), fn ($a) => $a->forceFill(['approved_at' => now()])->save());
         $first = Student::create(['account_id' => $account->id, 'name' => 'Multi Student', 'phone' => '01799900022', 'course_id' => $plc->id, 'fee' => 1000]);
 
         $this->post('/admin/records/student', ['name' => 'Multi Student', 'phone' => '01799900022', 'course' => $vfd->id, 'batch' => '', 'from' => $first->id])
@@ -101,7 +101,7 @@ class ErpMultiCourseTest extends TestCase
     public function test_website_student_without_course_gets_it_on_the_same_id(): void
     {
         $plc = Erp::courses()->first();
-        $account = StudentAccount::create(['name' => 'Web Same Id', 'email' => 'web-same-id@example.com', 'phone' => '01799900077', 'phone_key' => '01799900077', 'password' => 'secret123']);
+        $account = tap(StudentAccount::create(['name' => 'Web Same Id', 'email' => 'web-same-id@example.com', 'phone' => '01799900077', 'phone_key' => '01799900077', 'password' => 'secret123']), fn ($a) => $a->forceFill(['approved_at' => now()])->save());
         $placeholder = Student::create(['account_id' => $account->id, 'name' => 'Web Same Id', 'phone' => '01799900077', 'course_id' => null, 'fee' => 0]);
 
         // Admin admits the same mobile number: the website record gets the course, no second record or ID
@@ -114,7 +114,7 @@ class ErpMultiCourseTest extends TestCase
     {
         $plc = Erp::courses()->first();
         $office = Student::create(['name' => 'Office Student', 'phone' => '01799900088', 'course_id' => $plc->id, 'fee' => 1000]);
-        $account = StudentAccount::create(['name' => 'Office Student', 'email' => 'office-student@example.com', 'phone' => '01799900088', 'phone_key' => '01799900088', 'password' => 'secret123']);
+        $account = tap(StudentAccount::create(['name' => 'Office Student', 'email' => 'office-student@example.com', 'phone' => '01799900088', 'phone_key' => '01799900088', 'password' => 'secret123']), fn ($a) => $a->forceFill(['approved_at' => now()])->save());
         $placeholder = Student::create(['account_id' => $account->id, 'name' => 'Office Student', 'phone' => '01799900088', 'course_id' => null, 'fee' => 0]);
 
         $this->post('/admin/website/student-accounts/link/'.$account->id, ['student' => $office->id]);

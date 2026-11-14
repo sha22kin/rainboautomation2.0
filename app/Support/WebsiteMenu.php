@@ -27,7 +27,6 @@ class WebsiteMenu
                 ['Training Courses', 'admin.trainingCourses', [], ['admin/website/training-courses*'], ['pages', 'add']],
                 ['Training Page Content', 'admin.trainingPage', [], ['admin/website/training-page'], ['pages', 'add']],
                 ['Course Inquiries', 'admin.trainingInquiries', [], ['admin/website/training-inquiries*'], ['pages', 'add']],
-                ['Registered Students', 'admin.studentAccounts', [], ['admin/website/student-accounts*'], ['pages', 'add']],
             ],
             'Blog & Services' => [
                 ['All Posts', 'admin.posts', [], ['admin/website/posts', 'admin/website/posts/edit*', 'admin/website/posts/create*'], ['posts', 'list']],
@@ -97,6 +96,15 @@ class WebsiteMenu
                 }
             }
         }
+        // In the ERP sidebar (under Certificates), not in the Website menu
+        if(Request::is('admin/website/student-accounts*')){
+            return 'Registered Students';
+        }
         return 'Website';
+    }
+
+    // ERP sidebar "Registered Students" link (same permission as the other Website pages)
+    public static function canStudentAccounts(){
+        return (bool) Auth::user()?->permission && static::can('pages', 'add');
     }
 }

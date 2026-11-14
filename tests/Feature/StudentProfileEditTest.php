@@ -20,7 +20,7 @@ class StudentProfileEditTest extends TestCase
     {
         parent::setUp();
         Http::fake(['translate.googleapis.com/*' => Http::response([[['অনুবাদ', 'x']]], 200)]);
-        $this->account = StudentAccount::create(['name' => 'Edit Test Student', 'email' => 'edit-test@example.com', 'phone' => '01712340001', 'phone_key' => '01712340001', 'password' => 'secret123'])->refresh();
+        $this->account = tap(StudentAccount::create(['name' => 'Edit Test Student', 'email' => 'edit-test@example.com', 'phone' => '01712340001', 'phone_key' => '01712340001', 'password' => 'secret123']), fn ($a) => $a->forceFill(['approved_at' => now()])->save())->refresh();
         $this->actingAs($this->account, 'student');
     }
 
@@ -64,7 +64,7 @@ class StudentProfileEditTest extends TestCase
 
     public function test_email_and_mobile_of_another_account_are_refused(): void
     {
-        StudentAccount::create(['name' => 'Other One', 'email' => 'other-one@example.com', 'phone' => '01912340003', 'phone_key' => '01912340003', 'password' => 'secret123']);
+        tap(StudentAccount::create(['name' => 'Other One', 'email' => 'other-one@example.com', 'phone' => '01912340003', 'phone_key' => '01912340003', 'password' => 'secret123']), fn ($a) => $a->forceFill(['approved_at' => now()])->save());
         $this->save(['email' => 'other-one@example.com', 'current_password' => 'secret123'])->assertSessionHasErrors('email');
         $this->save(['phone' => '+8801912340003'])->assertSessionHasErrors('phone_key');
     }

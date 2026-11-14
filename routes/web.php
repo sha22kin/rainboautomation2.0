@@ -134,6 +134,7 @@ Route::get('/training-courses',[AdminController::class,'trainingCourses'])->name
 Route::match(['get','post'],'/training-page',[AdminController::class,'trainingPage'])->name('trainingPage');
 Route::match(['get','post'],'/training-inquiries',[AdminController::class,'trainingInquiries'])->name('trainingInquiries');
 Route::get('/student-accounts',[AdminController::class,'studentAccounts'])->name('studentAccounts');
+Route::get('/student-accounts/{id}',[AdminController::class,'studentAccountsView'])->whereNumber('id')->name('studentAccountsView');
 Route::post('/student-accounts/{action}/{id}',[AdminController::class,'studentAccountsAction'])->whereNumber('id')->name('studentAccountsAction');
 Route::get('/training-inquiries/{action}/{id}',[AdminController::class,'trainingInquiriesAction'])->name('trainingInquiriesAction');
 Route::any('/training-courses/{action}/{id?}',[AdminController::class,'trainingCoursesAction'])->name('trainingCoursesAction');

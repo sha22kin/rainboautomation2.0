@@ -78,11 +78,11 @@
     .sp-field { margin-bottom: 16px; }
     .sp-field label { display: block; font-weight: 700; font-size: 13px; color: #273750; margin-bottom: 7px; }
     .sp-field label .req { color: #d22d4b; }
-    .sp-field input[type=text], .sp-field input[type=email], .sp-field input[type=tel], .sp-field input[type=password] { width: 100%; border: 1px solid #dbe4ee; border-radius: 12px; padding: 12px 14px; font-size: 14px; background: #fbfcfe; transition: .2s; }
-    .sp-field input:focus { outline: none; border-color: #287dcc; background: #fff; box-shadow: 0 0 0 4px rgba(40, 125, 204, .12); }
+    .sp-field input[type=text], .sp-field input[type=email], .sp-field input[type=tel], .sp-field input[type=password], .sp-field input[type=date], .sp-field select { width: 100%; border: 1px solid #dbe4ee; border-radius: 12px; padding: 12px 14px; font-size: 14px; background: #fbfcfe; transition: .2s; }
+    .sp-field input:focus, .sp-field select:focus { outline: none; border-color: #287dcc; background: #fff; box-shadow: 0 0 0 4px rgba(40, 125, 204, .12); }
     .sp-field .hint { font-size: 12px; color: #6b7c92; margin-top: 6px; }
     .sp-field .err { font-size: 12px; color: #d22d4b; margin-top: 6px; font-weight: 600; }
-    .sp-field.has-err input { border-color: #e88a9c; }
+    .sp-field.has-err input, .sp-field.has-err select { border-color: #e88a9c; }
     .sp-row2 { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
     .sp-photo-edit { display: flex; align-items: center; gap: 18px; padding: 16px; border: 1px dashed #cfdceb; border-radius: 18px; background: #f8fbff; margin-bottom: 18px; flex-wrap: wrap; }
     .sp-photo-edit .sp-photo { width: 92px; height: 92px; flex-basis: 92px; border-width: 4px; font-size: 30px; border-radius: 24px; }
@@ -92,4 +92,11 @@
 
     @media (max-width: 900px) { .sp-stats { grid-template-columns: repeat(2, 1fr); } .sp-grid, .sp-form-grid { grid-template-columns: 1fr; } }
     @media (max-width: 560px) { .sp-hero-body { padding: 0 18px 20px; } .sp-id, .sp-actions { padding-top: 0; } .sp-cert { flex-wrap: wrap; } .sp-cert-actions { flex-direction: row; width: 100%; } .sp-cert-actions .sp-btn { flex: 1; } .sp-stats { grid-template-columns: 1fr 1fr; gap: 10px; } .sp-stat { padding: 14px; } .sp-stat b { font-size: 18px; } .sp-section { padding: 18px; } .sp-money { grid-template-columns: 1fr 1fr 1fr; } .sp-row2 { grid-template-columns: 1fr; } .sp-id h1 { font-size: 22px; } }
+.sp-details { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 12px; }
+.sp-details div { background: #f8fbff; border: 1px solid #e6edf5; border-radius: 12px; padding: 12px 14px; min-width: 0; }
+.sp-details small { display: block; font-size: 12px; color: #6b7c92; font-weight: 700; }
+.sp-details b { display: block; color: #172338; font-size: 14px; overflow-wrap: anywhere; margin-top: 3px; }
+.sp-details b.none { color: #9aa8b8; font-weight: 600; font-style: italic; }
+.sp-details small i { color: #287dcc; width: 16px; }
+.sp-details .wide { grid-column: 1 / -1; }
 </style>

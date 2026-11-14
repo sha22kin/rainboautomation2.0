@@ -31,6 +31,31 @@
             <div class="sp-stat"><span class="ic" style="background:#fff1f3;color:#d22d4b"><i class="fa-solid fa-hourglass-half"></i></span><div><small>Total Due</small><b>{{$money($totalDue)}}</b></div></div>
         </div>
 
+        {{-- Everything given on the registration form (editable on Edit Profile); empty ones show "Not given" --}}
+        @php
+            $details = [
+                ['Full Name', $account->name, 'fa-regular fa-user'],
+                ['Mobile Number', $account->phone, 'fa-solid fa-mobile-screen'],
+                ['Email Address', $account->email, 'fa-regular fa-envelope'],
+                ['Date of Birth', $account->dob?->format('d M Y'), 'fa-regular fa-calendar'],
+                ['Profession', $account->profession, 'fa-solid fa-briefcase'],
+                ['Institute / Company', $account->organization, 'fa-solid fa-building-columns'],
+                ['Highest Education', $account->education, 'fa-solid fa-user-graduate'],
+                ['Preferred Training Course', $account->preferredCourse?->course('title'), 'fa-solid fa-book-open'],
+                ['Training Preference', $account->training_mode, 'fa-solid fa-chalkboard-user'],
+                ['Preferred Training Location', $account->training_location, 'fa-solid fa-location-dot'],
+                ['Present Address', $account->address, 'fa-solid fa-house'],
+            ];
+        @endphp
+        <div class="sp-section">
+            <div class="sp-section-head"><h2><i class="fa-regular fa-id-badge"></i> My Information</h2><a class="sp-btn sp-btn-light" href="{{route('student.profile.edit')}}"><i class="fa-solid fa-user-pen"></i> Edit</a></div>
+            <div class="sp-details">
+                @foreach($details as [$label, $value, $icon])
+                <div class="{{$label === 'Present Address' ? 'wide' : ''}}"><small><i class="{{$icon}}"></i> {{$label}}</small>@if(filled($value))<b>{{$value}}</b>@else<b class="none">Not given</b>@endif</div>
+                @endforeach
+            </div>
+        </div>
+
         <div class="sp-section">
             <div class="sp-section-head">
                 <h2><i class="fa-solid fa-graduation-cap"></i> My Courses</h2>
