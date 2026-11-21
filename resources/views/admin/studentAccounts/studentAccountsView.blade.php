@@ -196,6 +196,34 @@
             </div>
         </div>
 
+        {{-- "Buy a Course" requests --}}
+        @if($requests->count())
+        <div class="rs-card sv-sec">
+            <h4><i class="fa-solid fa-cart-shopping"></i> Course Requests <span class="rs-chip id">{{$requests->count()}}</span></h4>
+            <div class="sv-body sv-scroll">
+                <table class="sv-table">
+                    <thead><tr><th>Request</th><th>Course</th><th>Sent</th><th>Status</th><th class="num"></th></tr></thead>
+                    <tbody>
+                        @foreach($requests as $request)
+                        <tr>
+                            <td>{{$request->code}}</td>
+                            <td><b>{{$request->course?->course('title') ?: 'Course removed'}}</b>@if($request->note)<br><small style="color:#8494a8">{{$request->note}}</small>@endif</td>
+                            <td style="white-space:nowrap;">{{$request->created_at?->format('d M Y')}}</td>
+                            <td>@if($request->status === 'pending')<span class="rs-chip wait">Waiting</span>@elseif($request->status === 'approved')<span class="rs-chip ok">Approved</span>@else<span class="rs-chip off">Rejected</span>@endif</td>
+                            <td class="num">
+                                @if($request->isPending())
+                                <form action="{{route('admin.courseRequestsAction',['approve',$request->id])}}" method="post" onsubmit="return confirm('Approve and enroll the student in this course?')">@csrf<button type="submit" class="rs-ic approve" style="width:26px;height:26px;" title="Approve and enroll"><i class="fa-solid fa-check"></i></button></form>
+                                <form action="{{route('admin.courseRequestsAction',['reject',$request->id])}}" method="post" onsubmit="var n=prompt('Reject this request? Reason for the student (optional):','');if(n===null)return false;this.admin_note.value=n;return true;">@csrf<input type="hidden" name="admin_note" value="" /><button type="submit" class="rs-ic reject" style="width:26px;height:26px;" title="Reject"><i class="fa-solid fa-xmark"></i></button></form>
+                                @endif
+                            </td>
+                        </tr>
+                        @endforeach
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        @endif
+
         {{-- Payments --}}
         <div class="rs-card sv-sec">
             <h4><i class="fa-solid fa-wallet"></i> Payments <span class="rs-chip id">{{$payments->count()}}</span></h4>

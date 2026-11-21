@@ -58,8 +58,8 @@
 
         <div class="sp-section">
             <div class="sp-section-head">
-                <h2><i class="fa-solid fa-graduation-cap"></i> My Courses</h2>
-                <span class="sp-count">{{$enrollments->count()}} {{\Illuminate\Support\Str::plural('course', $enrollments->count())}}</span>
+                <h2><i class="fa-solid fa-graduation-cap"></i> My Courses <span class="sp-count">{{$enrollments->count()}} {{\Illuminate\Support\Str::plural('course', $enrollments->count())}}</span></h2>
+                <a class="sp-btn sp-btn-primary" href="{{route('student.courses.buy')}}"><i class="fa-solid fa-cart-shopping"></i> Buy a Course</a>
             </div>
             @if($enrollments->count())
             <div class="sp-grid">
@@ -87,9 +87,35 @@
                 @endforeach
             </div>
             @else
-            <div class="sp-empty"><i class="fa-solid fa-book-open-reader"></i><div>No course is linked to your account yet. After you are admitted to a course, our office links it to this account and it appears here.</div></div>
+            <div class="sp-empty"><i class="fa-solid fa-book-open-reader"></i><div>You have no course yet. Click <b>Buy a Course</b> to choose one; it appears here once our office approves it.</div></div>
             @endif
         </div>
+
+        {{-- "Buy a Course" requests and their status (approved ones are in My Courses) --}}
+        @if($requests->count())
+        <div class="sp-section">
+            <div class="sp-section-head"><h2><i class="fa-solid fa-cart-shopping"></i> My Course Requests</h2></div>
+            <div class="sp-reqs">
+                @foreach($requests as $request)
+                <div class="sp-req">
+                    <div class="sp-req-main">
+                        <b>{{$request->course?->course('title') ?: 'Course'}}</b>
+                        <span>{{$request->code}} · Sent {{$request->created_at?->format('d M Y')}}@if($request->note) · {{$request->note}}@endif</span>
+                        @if($request->status === 'rejected' && $request->admin_note)<span class="sp-req-note"><i class="fa-solid fa-comment"></i> {{$request->admin_note}}</span>@endif
+                    </div>
+                    @if($request->status === 'pending')
+                    <span class="sp-req-st wait"><i class="fa-solid fa-hourglass-half"></i> Waiting for approval</span>
+                    <form action="{{route('student.courses.cancel', $request->id)}}" method="post" onsubmit="return confirm('Cancel this course request?')">@csrf<button type="submit" class="sp-btn sp-btn-light" style="padding:6px 12px;font-size:13px;">Cancel</button></form>
+                    @elseif($request->status === 'approved')
+                    <span class="sp-req-st ok"><i class="fa-solid fa-circle-check"></i> Approved · Enrolled</span>
+                    @else
+                    <span class="sp-req-st no"><i class="fa-solid fa-circle-xmark"></i> Not approved</span>
+                    @endif
+                </div>
+                @endforeach
+            </div>
+        </div>
+        @endif
 
         <div class="sp-section">
             <div class="sp-section-head">

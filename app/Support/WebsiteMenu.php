@@ -100,6 +100,9 @@ class WebsiteMenu
         if(Request::is('admin/website/student-accounts*')){
             return 'Registered Students';
         }
+        if(Request::is('admin/website/course-requests*')){
+            return 'Course Requests';
+        }
         return 'Website';
     }
 

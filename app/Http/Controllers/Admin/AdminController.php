@@ -1052,7 +1052,43 @@ class AdminController extends Controller
     $certificates =\App\Models\Erp\Certificate::with('course')->whereIn('student_id',$ids)->latest('issued')->get();
     $attendance =\App\Models\Erp\Attendance::whereIn('student_id',$ids)->get()->groupBy('student_id');
     $suggestions =$account->suggestedEnrollments();
-    return view(adminTheme().'studentAccounts.studentAccountsView',compact('account','enrollments','payments','certificates','attendance','suggestions'));
+    $requests =\App\Models\StudentCourseRequest::with('course')->where('account_id',$account->id)->latest('id')->get();
+    return view(adminTheme().'studentAccounts.studentAccountsView',compact('account','enrollments','payments','certificates','attendance','suggestions','requests'));
+  }
+
+  // "Buy a Course" requests from student profiles
+  public function courseRequests(Request $r){
+    $filter =in_array($r->filter,['approved','rejected','all']) ? $r->filter : 'pending';
+    $requests =\App\Models\StudentCourseRequest::with(['account','course'])
+      ->when($filter!='all',fn($q)=>$q->where('status',$filter))
+      ->when($r->search,function($q) use($r){
+        $q->where(function($w) use($r){
+          $w->whereHas('account',function($qq) use($r){
+            $qq->where('name','LIKE','%'.$r->search.'%')->orWhere('email','LIKE','%'.$r->search.'%')->orWhere('phone','LIKE','%'.$r->search.'%');
+          });
+        });
+      })
+      ->latest('id')->paginate(25)->appends($r->only(['search','filter']));
+    $totals =\App\Models\StudentCourseRequest::selectRaw('status, count(*) c')->groupBy('status')->pluck('c','status');
+    return view(adminTheme().'courseRequests.courseRequests',compact('requests','totals','filter'));
+  }
+
+  // Approve (adds the course to the student) or reject (POST only)
+  public function courseRequestsAction(Request $r,$action,$id){
+    $request =\App\Models\StudentCourseRequest::with('account')->find($id);
+    if(!$request){
+      Session()->flash('error','This Course Request Is Not Found');
+      return redirect()->route('admin.courseRequests');
+    }
+    if($action=='approve'){
+      $error =$request->approve(Auth::id());
+      $error ? Session()->flash('error',$error) : Session()->flash('success',$request->account->name.' Enrolled In '.($request->course?->course('title') ?: 'The Course').'!');
+    }else{
+      $r->validate(['admin_note'=>'nullable|max:500']);
+      $error =$request->reject(Auth::id(),$r->filled('admin_note') ? trim($r->admin_note) : null);
+      $error ? Session()->flash('error',$error) : Session()->flash('success','Course Request Rejected!');
+    }
+    return back();
   }
 
   // link / unlink an ERP student record, block / unblock, delete (POST only)
@@ -1095,6 +1131,7 @@ class AdminController extends Controller
       Session()->flash('success','Student Account '.($action=='block' ? 'Blocked' : 'Unblocked').'!');
     }elseif($action=='delete'){
       $account->enrollments()->update(['account_id'=>null]);
+      \App\Models\StudentCourseRequest::where('account_id',$account->id)->delete();
       $account->delete();
       Session()->flash('success','Student Account Deleted!');
       return redirect()->route('admin.studentAccounts');

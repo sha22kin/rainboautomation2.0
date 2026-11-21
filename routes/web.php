@@ -74,6 +74,9 @@ Route::post('/profile/edit','updateProfile')->middleware(['auth:student','thrott
 Route::post('/profile/photo/remove','removePhoto')->middleware(['auth:student','throttle:20,1'])->name('photo.remove');
 Route::post('/profile/password','updatePassword')->middleware(['auth:student','throttle:10,1'])->name('password');
 Route::get('/certificates/{id}','certificate')->middleware('auth:student')->whereNumber('id')->name('certificate');
+Route::get('/courses/buy','buyCourse')->middleware('auth:student')->name('courses.buy');
+Route::post('/courses/buy','storeCourseRequest')->middleware(['auth:student','throttle:10,1']);
+Route::post('/courses/requests/{id}/cancel','cancelCourseRequest')->middleware(['auth:student','throttle:20,1'])->whereNumber('id')->name('courses.cancel');
 });
 
 // Training ERP (CMS design)
@@ -136,6 +139,8 @@ Route::match(['get','post'],'/training-inquiries',[AdminController::class,'train
 Route::get('/student-accounts',[AdminController::class,'studentAccounts'])->name('studentAccounts');
 Route::get('/student-accounts/{id}',[AdminController::class,'studentAccountsView'])->whereNumber('id')->name('studentAccountsView');
 Route::post('/student-accounts/{action}/{id}',[AdminController::class,'studentAccountsAction'])->whereNumber('id')->name('studentAccountsAction');
+Route::get('/course-requests',[AdminController::class,'courseRequests'])->name('courseRequests');
+Route::post('/course-requests/{action}/{id}',[AdminController::class,'courseRequestsAction'])->where('action','approve|reject')->whereNumber('id')->name('courseRequestsAction');
 Route::get('/training-inquiries/{action}/{id}',[AdminController::class,'trainingInquiriesAction'])->name('trainingInquiriesAction');
 Route::any('/training-courses/{action}/{id?}',[AdminController::class,'trainingCoursesAction'])->name('trainingCoursesAction');
 //Page Management End

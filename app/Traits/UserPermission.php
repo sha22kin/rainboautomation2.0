@@ -28,6 +28,8 @@ trait UserPermission{
 				empty(json_decode($activeRole->permission, true)['pages']['add']) && \Route::is('admin.studentAccounts') ||
 				empty(json_decode($activeRole->permission, true)['pages']['add']) && \Route::is('admin.studentAccountsAction') ||
 				empty(json_decode($activeRole->permission, true)['pages']['add']) && \Route::is('admin.studentAccountsView') ||
+				empty(json_decode($activeRole->permission, true)['pages']['add']) && \Route::is('admin.courseRequests') ||
+				empty(json_decode($activeRole->permission, true)['pages']['add']) && \Route::is('admin.courseRequestsAction') ||
 				empty(json_decode($activeRole->permission, true)['pages']['add']) && \Route::is('admin.industrialCapabilities') ||
 				empty(json_decode($activeRole->permission, true)['pages']['add']) && \Route::is('admin.trainingCourses') ||
 				empty(json_decode($activeRole->permission, true)['pages']['add']) && \Route::is('admin.trainingCoursesAction') ||

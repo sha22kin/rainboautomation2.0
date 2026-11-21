@@ -80,7 +80,7 @@ class StudentPortalTest extends TestCase
         $this->post('/student/login', ['email' => 'test.student@example.com', 'password' => 'secret123'])->assertRedirect('/student/profile');
         $this->assertAuthenticated('student');
         $this->assertGuest('web');
-        $this->get('/student/profile')->assertOk()->assertSee('Test Student Karim')->assertSee('No course is linked');
+        $this->get('/student/profile')->assertOk()->assertSee('Test Student Karim')->assertSee('You have no course yet');
         $this->get('/')->assertSee('My Student Profile');
     }
 
@@ -185,7 +185,7 @@ class StudentPortalTest extends TestCase
         $otherCert = Certificate::create(['student_id' => $other->id, 'course_id' => $course->id, 'issued' => '2026-11-05', 'grade' => 'B']);
 
         // Same phone is only a suggestion: nothing shows until an admin links it
-        $this->get('/student/profile')->assertSee('No course is linked')->assertDontSee($myCert->code);
+        $this->get('/student/profile')->assertSee('You have no course yet')->assertDontSee($myCert->code);
         $this->assertTrue($account->suggestedEnrollments()->contains('id', $mine->id));
 
         $mine->update(['account_id' => $account->id]);

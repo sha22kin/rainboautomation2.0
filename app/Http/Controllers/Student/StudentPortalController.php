@@ -7,6 +7,7 @@ use App\Models\Erp\Certificate;
 use App\Models\Erp\Student;
 use Illuminate\Support\Facades\DB;
 use App\Models\StudentAccount;
+use App\Models\StudentCourseRequest;
 use App\Support\CertificateTemplate;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -208,7 +209,69 @@ class StudentPortalController extends Controller
         $enrollments = $account->enrollments()->whereNotNull('course_id')->with(['course', 'batch', 'payments'])->latest('admitted_on')->get();
         $certificates = $account->certificates()->with('course')->latest('issued')->get();
 
-        return view('welcome.student.profile', compact('account', 'enrollments', 'certificates'));
+        $requests = StudentCourseRequest::with('course')->where('account_id', $account->id)->latest('id')->take(10)->get();
+
+        return view('welcome.student.profile', compact('account', 'enrollments', 'certificates', 'requests'));
+    }
+
+    // Courses the student can still buy: website courses not taken and not already asked for
+    private function buyableCourses(StudentAccount $account){
+        $taken = $account->enrollments()->whereNotNull('course_id')->pluck('course_id')
+            ->merge(StudentCourseRequest::where('account_id', $account->id)->where('status', 'pending')->pluck('course_id'))
+            ->map(fn ($id) => (int) $id)->all();
+        return trainingCourses()->reject(fn ($c) => in_array((int) $c->id, $taken, true))->values();
+    }
+
+    // "Buy Course" form (profile → Buy a Course)
+    public function buyCourse(Request $r){
+        $account = $this->account($r);
+        if(!$account){
+            return redirect()->route('student.login')->with('error', 'This account is blocked. Please contact Rainbow Automation.');
+        }
+        if(!$account->isApproved()){
+            return redirect()->route('student.profile');
+        }
+        $courses = $this->buyableCourses($account);
+        $selected = (int) $r->query('course');
+        return view('welcome.student.buy', compact('account', 'courses', 'selected'));
+    }
+
+    // The request waits for the admin (ERP → Course Requests); approving it enrolls the student
+    public function storeCourseRequest(Request $r){
+        $account = $this->account($r);
+        abort_unless($account, 403);
+        if(!$account->isApproved()){
+            return redirect()->route('student.profile');
+        }
+        if(StudentCourseRequest::where('account_id', $account->id)->where('status', 'pending')->count() >= 5){
+            return back()->withInput()->with('error', 'You already have 5 course requests waiting. Please wait until our office handles them.');
+        }
+
+        $r->validate([
+            'course_id' => ['required', Rule::in($this->buyableCourses($account)->pluck('id')->all())],
+            'note' => 'nullable|string|max:500',
+        ], [
+            'course_id.required' => 'Please select a course.',
+            'course_id.in' => 'This course cannot be requested: you already have it or already asked for it.',
+        ]);
+
+        StudentCourseRequest::create([
+            'account_id' => $account->id,
+            'course_id' => $r->course_id,
+            'note' => $r->filled('note') ? trim($r->note) : null,
+        ]);
+
+        return redirect()->route('student.profile')->with('success', 'Your course request has been sent. The course is added to your profile once Rainbow Automation approves it.');
+    }
+
+    // A waiting request can be withdrawn by the student
+    public function cancelCourseRequest(Request $r, $id){
+        $account = $this->account($r);
+        abort_unless($account, 403);
+        $request = StudentCourseRequest::where('account_id', $account->id)->where('status', 'pending')->find($id);
+        abort_unless($request, 404);
+        $request->delete();
+        return redirect()->route('student.profile')->with('success', 'Your course request has been cancelled.');
     }
 
     public function editProfile(Request $r){

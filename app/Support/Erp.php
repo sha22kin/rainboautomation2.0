@@ -26,6 +26,7 @@ class Erp
         'certificates' => ['★', 'Certificates'],
         'certificate-template' => ['★', 'Certificate Template'],
         'registered-students' => ['♚', 'Registered Students'],
+        'course-requests' => ['✚', 'Course Requests'],
         'reports' => ['▥', 'Reports & Analytics'],
         'settings' => ['⚙', 'Settings & Access'],
     ];

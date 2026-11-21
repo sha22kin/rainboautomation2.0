@@ -68,7 +68,7 @@ class StudentErpLinkTest extends TestCase
         $this->actingAs($this->admin());
         $this->get('/admin/students')->assertOk()->assertSee('Erp Link Student')->assertSee('Has a website student account');
         $this->actingAs($this->account(), 'student');
-        $this->get('/student/profile')->assertSee('No course is linked');
+        $this->get('/student/profile')->assertSee('You have no course yet');
     }
 
     public function test_a_course_sent_with_the_registration_is_ignored(): void

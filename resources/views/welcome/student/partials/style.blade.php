@@ -99,4 +99,15 @@
 .sp-details b.none { color: #9aa8b8; font-weight: 600; font-style: italic; }
 .sp-details small i { color: #287dcc; width: 16px; }
 .sp-details .wide { grid-column: 1 / -1; }
+.sp-reqs { display: grid; gap: 10px; }
+.sp-req { display: flex; flex-wrap: wrap; align-items: center; gap: 10px 14px; padding: 12px 14px; border: 1px solid #e6edf5; border-radius: 14px; background: #fbfdff; }
+.sp-req form { margin: 0; }
+.sp-req-main { flex: 1 1 260px; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
+.sp-req-main b { color: #172338; }
+.sp-req-main span { font-size: 13px; color: #6b7c92; overflow-wrap: anywhere; }
+.sp-req-main .sp-req-note { color: #b4233f; }
+.sp-req-st { font-size: 12px; font-weight: 800; border-radius: 999px; padding: 5px 11px; white-space: nowrap; }
+.sp-req-st.wait { background: #fff4dc; color: #a46a00; }
+.sp-req-st.ok { background: #e8f8ee; color: #1f8a46; }
+.sp-req-st.no { background: #fff1f3; color: #b4233f; }
 </style>
